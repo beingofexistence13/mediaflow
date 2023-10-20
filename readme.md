@@ -52,7 +52,7 @@ Here are the 5 open-source GitHub alternatives and 5 open-source media managemen
 | GitBucket (Media Streaming) | [GitBucket Repository](^19^) |
 | RhodeCode (Media Streaming) | [RhodeCode Repository](^31^) |
 
-git clone REPOSITORY_LINK (REPOSITORY_NAME->in smallercase) && cd (REPOSITORY_NAME->in smallercase) && rm -rf .git && cd ..
+<!-- git clone REPOSITORY_LINK (REPOSITORY_NAME->in smallercase) && cd (REPOSITORY_NAME->in smallercase) && rm -rf .git && cd .. -->
 
 <!-- # 🌟 Multiversal-Runtime: A Joyful Journey into the Universe of Javascipt Runtimes 🚀
 
