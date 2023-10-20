@@ -1,0 +1,34 @@
+# valid workflow:rules:changes
+rules:changes with paths and compare_to properties:
+  script: exit 0
+  rules:
+    - changes:
+        paths:
+          - README.md
+        compare_to: main
+
+rules:changes as array of strings:
+  script: exit 0
+  rules:
+    - changes:
+      - README.md
+
+# valid workflow:rules:exists
+# valid rules:changes:path
+# valid workflow:name
+workflow:
+  name: 'Pipeline name'
+  rules:
+    - changes:
+        paths:
+          - README.md
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      exists:
+        - Dockerfile
+      variables:
+        IS_A_FEATURE: 'true'
+      when: always
+
+# valid rules:null
+rules-null:
+  rules: null

@@ -1,0 +1,14 @@
+- page_title s_("ForkProject|Fork project")
+
+#fork-groups-mount-element{ data: { fork_illustration: image_path('illustrations/project-create-new-sm.svg'),
+  endpoint: new_project_fork_path(@project, format: :json),
+  new_group_path: new_group_path,
+  project_full_path: @project.full_path,
+  visibility_help_path: help_page_path("user/public_access"),
+  cancel_path: project_path(@project),
+  project_id: @project.id,
+  project_name: @project.name,
+  project_path: @project.path,
+  project_description: @project.description,
+  project_visibility: @project.visibility,
+  restricted_visibility_levels: Gitlab::CurrentSettings.restricted_visibility_levels.to_json } }

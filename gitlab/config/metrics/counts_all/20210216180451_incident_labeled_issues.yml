@@ -1,0 +1,22 @@
+---
+data_category: optional
+key_path: counts.incident_labeled_issues
+description: Count of all issues with the label=incident
+product_section: ops
+product_stage: monitor
+product_group: monitor
+value_type: number
+status: removed
+time_frame: all
+data_source: database
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"
+milestone_removed: "14.8"
+removed_by_url:

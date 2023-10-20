@@ -1,0 +1,188 @@
+<script>
+import { GlTableLite, GlToggle } from '@gitlab/ui';
+import {
+  GENERIC_PACKAGE_FORMAT,
+  MAVEN_PACKAGE_FORMAT,
+  PACKAGE_FORMATS_TABLE_HEADER,
+  PACKAGE_SETTINGS_HEADER,
+  PACKAGE_SETTINGS_DESCRIPTION,
+  DUPLICATES_SETTING_EXCEPTION_TITLE,
+  DUPLICATES_TOGGLE_LABEL,
+} from '~/packages_and_registries/settings/group/constants';
+import updateNamespacePackageSettings from '~/packages_and_registries/settings/group/graphql/mutations/update_group_packages_settings.mutation.graphql';
+import { updateGroupPackageSettings } from '~/packages_and_registries/settings/group/graphql/utils/cache_update';
+import { updateGroupPackagesSettingsOptimisticResponse } from '~/packages_and_registries/settings/group/graphql/utils/optimistic_responses';
+import SettingsBlock from '~/packages_and_registries/shared/components/settings_block.vue';
+import ExceptionsInput from '~/packages_and_registries/settings/group/components/exceptions_input.vue';
+
+export default {
+  name: 'PackageSettings',
+  i18n: {
+    PACKAGE_SETTINGS_HEADER,
+    PACKAGE_SETTINGS_DESCRIPTION,
+    DUPLICATES_SETTING_EXCEPTION_TITLE,
+    DUPLICATES_TOGGLE_LABEL,
+  },
+  tableHeaderFields: [
+    {
+      key: 'packageFormat',
+      label: PACKAGE_FORMATS_TABLE_HEADER,
+      thClass: 'gl-bg-gray-10!',
+    },
+    {
+      key: 'allowDuplicates',
+      label: DUPLICATES_TOGGLE_LABEL,
+      thClass: 'gl-bg-gray-10!',
+    },
+    {
+      key: 'exceptions',
+      label: DUPLICATES_SETTING_EXCEPTION_TITLE,
+      thClass: 'gl-bg-gray-10!',
+    },
+  ],
+  components: {
+    SettingsBlock,
+    GlTableLite,
+    GlToggle,
+    ExceptionsInput,
+  },
+  inject: ['groupPath'],
+  props: {
+    packageSettings: {
+      type: Object,
+      required: true,
+    },
+    isLoading: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+  },
+  data() {
+    return {
+      errors: {},
+    };
+  },
+  computed: {
+    tableRows() {
+      return [
+        {
+          id: 'maven-duplicated-settings-regex-input',
+          format: MAVEN_PACKAGE_FORMAT,
+          duplicatesAllowed: this.packageSettings.mavenDuplicatesAllowed,
+          duplicateExceptionRegex: this.packageSettings.mavenDuplicateExceptionRegex,
+          duplicateExceptionRegexError: this.errors.mavenDuplicateExceptionRegex,
+          modelNames: {
+            allowed: 'mavenDuplicatesAllowed',
+            exception: 'mavenDuplicateExceptionRegex',
+          },
+          testid: 'maven-settings',
+          dataQaSelector: 'allow_duplicates_toggle',
+        },
+        {
+          id: 'generic-duplicated-settings-regex-input',
+          format: GENERIC_PACKAGE_FORMAT,
+          duplicatesAllowed: this.packageSettings.genericDuplicatesAllowed,
+          duplicateExceptionRegex: this.packageSettings.genericDuplicateExceptionRegex,
+          duplicateExceptionRegexError: this.errors.genericDuplicateExceptionRegex,
+          modelNames: {
+            allowed: 'genericDuplicatesAllowed',
+            exception: 'genericDuplicateExceptionRegex',
+          },
+          testid: 'generic-settings',
+        },
+      ];
+    },
+  },
+  methods: {
+    async updateSettings(payload) {
+      this.errors = {};
+      try {
+        const { data } = await this.$apollo.mutate({
+          mutation: updateNamespacePackageSettings,
+          variables: {
+            input: {
+              namespacePath: this.groupPath,
+              ...payload,
+            },
+          },
+          update: updateGroupPackageSettings(this.groupPath),
+          optimisticResponse: updateGroupPackagesSettingsOptimisticResponse({
+            ...this.packageSettings,
+            ...payload,
+          }),
+        });
+
+        if (data.updateNamespacePackageSettings?.errors?.length > 0) {
+          throw new Error();
+        } else {
+          this.$emit('success');
+        }
+      } catch (e) {
+        if (e.graphQLErrors) {
+          e.graphQLErrors.forEach((error) => {
+            const [
+              {
+                path: [key],
+                message,
+              },
+            ] = error.extensions.problems;
+            this.errors = { ...this.errors, [key]: message };
+          });
+        }
+        this.$emit('error');
+      }
+    },
+    update(type, value) {
+      this.updateSettings({ [type]: value });
+    },
+  },
+};
+</script>
+
+<template>
+  <settings-block data-qa-selector="package_registry_settings_content">
+    <template #title> {{ $options.i18n.PACKAGE_SETTINGS_HEADER }}</template>
+    <template #description>
+      <span data-testid="description">
+        {{ $options.i18n.PACKAGE_SETTINGS_DESCRIPTION }}
+      </span>
+    </template>
+    <template #default>
+      <form>
+        <gl-table-lite
+          :fields="$options.tableHeaderFields"
+          :items="tableRows"
+          stacked="sm"
+          :tbody-tr-attr="(item) => ({ 'data-testid': item.testid })"
+        >
+          <template #cell(packageFormat)="{ item }">
+            <span class="gl-md-pt-3">{{ item.format }}</span>
+          </template>
+          <template #cell(allowDuplicates)="{ item }">
+            <gl-toggle
+              :data-qa-selector="item.dataQaSelector"
+              :label="$options.i18n.DUPLICATES_TOGGLE_LABEL"
+              :value="item.duplicatesAllowed"
+              :disabled="isLoading"
+              label-position="hidden"
+              class="gl-align-items-flex-end gl-sm-align-items-flex-start"
+              @change="update(item.modelNames.allowed, $event)"
+            />
+          </template>
+          <template #cell(exceptions)="{ item }">
+            <exceptions-input
+              :id="item.id"
+              :duplicates-allowed="item.duplicatesAllowed"
+              :duplicate-exception-regex="item.duplicateExceptionRegex"
+              :duplicate-exception-regex-error="item.duplicateExceptionRegexError"
+              :name="item.modelNames.exception"
+              :loading="isLoading"
+              @update="updateSettings"
+            />
+          </template>
+        </gl-table-lite>
+      </form>
+    </template>
+  </settings-block>
+</template>

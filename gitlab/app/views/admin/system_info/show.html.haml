@@ -1,0 +1,48 @@
+- page_title _('System Info')
+
+.gl-mt-3
+.row
+  .col-sm
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-3' }) do |c|
+      - c.with_body do
+        %h4
+          = sprite_icon('pod', size: 18, css_class: 'gl-text-gray-700')
+          = _('CPU')
+        .data
+          - if @cpus
+            %h2= _('%{cores} cores') % { cores: @cpus.length }
+          - else
+            = sprite_icon('warning-solid', css_class: 'text-warning')
+            = _('Unable to collect CPU info')
+
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-3' }) do |c|
+      - c.with_body do
+        %h4
+          = sprite_icon('status-health', size: 18, css_class: 'gl-text-gray-700')
+          = _('Memory Usage')
+        .data
+          - if @memory
+            %h2 #{number_to_human_size(@memory.active_bytes)} / #{number_to_human_size(@memory.total_bytes)}
+          - else
+            = sprite_icon('warning-solid', css_class: 'text-warning')
+            = _('Unable to collect memory info')
+
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-3' }) do |c|
+      - c.with_body do
+        %h4
+          = sprite_icon('clock', size: 18, css_class: 'gl-text-gray-700')
+          = _('System started')
+        .data
+          %h2= time_ago_with_tooltip(Rails.application.config.booted_at)
+  .col-sm
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-3' }) do |c|
+      - c.with_body do
+        %h4
+          = sprite_icon('disk', size: 18, css_class: 'gl-text-gray-700')
+          = _('Disk Usage')
+        .data
+          - @disks.each do |disk|
+            %h2 #{number_to_human_size(disk[:bytes_used])} / #{number_to_human_size(disk[:bytes_total])}
+            %ul
+              %li= disk[:disk_name]
+              %li= disk[:mount_path]

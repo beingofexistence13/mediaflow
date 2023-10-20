@@ -1,0 +1,24 @@
+---
+data_category: operational
+key_path: counts.projects_jira_dvcs_server_active
+description: Count of active integrations with Jira Software (DVCS connector)
+product_section: dev
+product_stage: manage
+product_group: integrations
+value_type: number
+status: active
+time_frame: all
+data_source: database
+instrumentation_class: CountProjectsWithJiraDvcsIntegrationMetric
+options:
+  cloud: false
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type:
+- customer_health_score
+milestone: "<13.9"

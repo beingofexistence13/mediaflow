@@ -1,0 +1,32 @@
+- page_itemtype 'https://schema.org/Organization'
+- @skip_current_level_breadcrumb = true
+- add_page_specific_style 'page_bundles/group'
+
+= render_if_exists 'shared/qrtly_reconciliation_alert', group: @group
+
+- if show_invite_banner?(@group)
+  = content_for :group_invite_members_banner do
+    .container-fluid.container-limited{ class: "gl-pb-2! gl-pt-6! #{@content_class}" }
+      .js-group-invite-members-banner{ data: { svg_path: image_path('illustrations/empty-state/empty-merge-requests-md.svg'),
+        track_label: 'invite_members_banner',
+        invite_members_path: group_group_members_path(@group),
+        callouts_path: group_callouts_path,
+        callouts_feature_id: Users::GroupCalloutsHelper::INVITE_MEMBERS_BANNER,
+        group_id: @group.id } }
+
+= content_for :meta_tags do
+  = auto_discovery_link_tag(:atom, group_url(@group, rss_url_options), title: "#{@group.name} activity")
+
+= render partial: 'flash_messages'
+
+= render_if_exists 'subscriptions/trials/alert', namespace: @group
+
+= render 'groups/home_panel'
+
+= render_if_exists 'groups/self_or_ancestor_marked_for_deletion_notice', group: @group
+
+= render_if_exists 'groups/group_activity_analytics', group: @group
+
+#js-group-overview-tabs{ data: group_overview_tabs_app_data(@group) }
+
+= render partial: 'groups/group_readme', locals: { group: @group }

@@ -1,0 +1,49 @@
+{
+  "name": "pandorafms/console",
+  "description": "Pandora Flexible Monitoring System ",
+  "authors": [
+    {
+      "name": "Artica",
+      "email": "info@pandorafms.com"
+    }
+  ],
+  "config": {
+    "platform": {
+      "php": "8.0.2"
+    }
+  },
+  "require": {
+    "mpdf/mpdf": "^8.0.15",
+    "swiftmailer/swiftmailer": "^6.0",
+    "amphp/parallel-functions": "^1.0",
+    "chrome-php/chrome": "^1.8.1",
+    "artica/phpchartjs": "^1.0",
+    "tinymce/tinymce": "^6.4"
+  },
+  "repositories": {
+    "phpchartjs": {
+      "type": "path",
+      "url": "../../../phpchartjs",
+      "options": {
+        "symlink": false
+      }
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Models\\": "include/rest-api/models",
+      "Enterprise\\Models\\": "enterprise/include/rest-api/models",
+      "PandoraFMS\\": "include/lib",
+      "PandoraFMS\\Enterprise\\": "enterprise/include/lib",
+      "UpdateManager\\": "update_manager_client/lib/UpdateManager"
+    },
+    "files": [
+      "include/global_config.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  }
+}

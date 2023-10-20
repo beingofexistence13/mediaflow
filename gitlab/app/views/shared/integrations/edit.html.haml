@@ -1,0 +1,11 @@
+- add_to_breadcrumbs _('Integrations'), scoped_integrations_path(project: @project, group: @group)
+- breadcrumb_title @integration.title
+- page_title @integration.title, _('Integrations')
+
+.gl-display-flex.gl-align-items-center.gl-gap-3.gl-mt-5
+  = render Pajamas::AvatarComponent.new(@integration, size: 64, alt: '')
+  %h2.gl-m-0
+    = @integration.title
+
+= render 'shared/integrations/tabs', integration: @integration, active_tab: 'edit' do
+  = render 'shared/integration_settings', integration: @integration

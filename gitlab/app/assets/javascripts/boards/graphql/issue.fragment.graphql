@@ -1,0 +1,6 @@
+#import "~/graphql_shared/fragments/issue.fragment.graphql"
+
+fragment Issue on Issue {
+  id
+  ...IssueNode
+}

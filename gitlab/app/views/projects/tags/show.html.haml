@@ -1,0 +1,59 @@
+- user = user_email = nil
+- if @tag.user_email
+  - user_email = @tag.user_email
+  - user = User.find_by_any_email(user_email)
+- add_to_breadcrumbs s_('TagsPage|Tags'), project_tags_path(@project)
+- breadcrumb_title @tag.name
+- page_title @tag.name, s_('TagsPage|Tags')
+
+.top-area.multi-line.flex-wrap
+  .nav-text
+    .title
+      %span.item-title.ref-name{ data: { qa_selector: 'tag_name_content' } }
+        = sprite_icon('tag')
+        = @tag.name
+      - if protected_tag?(@project, @tag)
+        = gl_badge_tag s_('TagsPage|protected'), variant: :success
+
+    - if user
+      = link_to user_path(user) do
+        %div
+          = user_avatar_without_link(user: user, size: 32, css_class: "mt-1 mb-1")
+
+        %div
+          %strong= user.name
+          %div= user.to_reference
+
+    - elsif user_email
+      = mail_to user_email do
+        %div
+          = user_avatar_without_link(user_email: user_email, size: 32, css_class: "mt-1 mb-1")
+
+        %div{ :class => "clearfix" }
+          %strong= user_email
+
+    - if @commit
+      = render 'projects/branches/commit', commit: @commit, project: @project
+    - else
+      = s_("TagsPage|Can't find HEAD commit for this tag")
+
+    - if @release
+      = render 'release_link', project: @project, release: @release
+
+  .nav-controls
+    - if @tag.has_signature?
+      = render partial: 'projects/commit/signature', object: @tag.signature
+    - if can?(current_user, :admin_tag, @project)
+      = render 'edit_release_button', tag: @tag, project: @project, release: @release
+    = link_button_to nil, project_tree_path(@project, @tag.name), class: 'has-tooltip', title: s_('TagsPage|Browse files'), icon: 'folder-open'
+    = link_button_to nil, project_commits_path(@project, @tag.name), class: 'has-tooltip', title: s_('TagsPage|Browse commits'), icon: 'history'
+    = render 'projects/buttons/download', project: @project, ref: @tag.name
+    - if can?(current_user, :admin_tag, @project)
+      = render 'projects/buttons/remove_tag', project: @project, tag: @tag
+
+  - if @tag.message.present?
+    %pre.wrap{ data: { qa_selector: 'tag_message_content' } }
+      = strip_signature(@tag.message)
+
+- if can?(current_user, :admin_tag, @project)
+  .js-delete-tag-modal

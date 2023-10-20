@@ -1,0 +1,45 @@
+include:
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "mail-smtp_pool"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "attr_encrypted"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "microsoft_graph_mailer"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "omniauth-azure-oauth2"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "omniauth_crowd"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "omniauth-gitlab"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "omniauth-salesforce"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "devise-pbkdf2-encryptable"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "bundler-checksum"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "cloud_profiler_agent"
+      gem_path_prefix: "vendor/gems/"
+  - local: .gitlab/ci/templates/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "sidekiq-reliable-fetch"
+      gem_path_prefix: "vendor/gems/"

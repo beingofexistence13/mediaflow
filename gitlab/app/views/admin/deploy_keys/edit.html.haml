@@ -1,0 +1,11 @@
+- page_title _('Edit Deploy Key')
+%h1.page-title.gl-font-size-h-display= _('Edit public deploy key')
+%hr
+
+%div
+  = gitlab_ui_form_for [:admin, @deploy_key], html: { class: 'deploy-key-form' } do |f|
+    = render partial: 'shared/deploy_keys/form', locals: { form: f, deploy_key: @deploy_key }
+    .form-actions
+      = f.submit _('Save changes'), pajamas_button: true
+      = render Pajamas::ButtonComponent.new(href: admin_deploy_keys_path) do
+        = _('Cancel')

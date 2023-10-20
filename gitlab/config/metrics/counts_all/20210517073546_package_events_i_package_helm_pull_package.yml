@@ -1,0 +1,24 @@
+---
+data_category: optional
+key_path: counts.package_events_i_package_helm_pull_package
+description: Total count of pull Helm packages events
+product_section: ops
+product_stage: package
+product_group: package
+value_type: number
+status: active
+milestone: "14.0"
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/61014
+time_frame: all
+data_source: redis
+instrumentation_class: RedisMetric
+options:
+  prefix: package_events
+  event: i_package_helm_pull_package
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate

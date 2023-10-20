@@ -1,0 +1,17 @@
+- available_visibility_levels = available_visibility_levels(form_model)
+- selected_level = snippets_selected_visibility_level(available_visibility_levels, selected_level)
+
+- available_visibility_levels.each do |level|
+
+  = form.gitlab_ui_radio_component model_method, level,
+     "#{visibility_level_icon(level)} #{visibility_level_label(level)}".html_safe,
+     help_text: '<span class="option-description">%{visibility_level_description}</span><span class="option-disabled-reason"></span>'.html_safe % { visibility_level_description: visibility_level_description(level, form_model)},
+     radio_options: { checked: (selected_level == level), data: { track_label: "blank_project", track_action: "activate_form_input", track_property: "#{model_method}_#{level}", track_value: "", qa_selector: "#{visibility_level_label(level).downcase}_radio" } },
+     label_options: { class: 'js-visibility-level-radio' }
+
+
+.text-muted
+  - if all_visibility_levels_restricted?
+    = _('Visibility settings have been disabled by the administrator.')
+  - elsif multiple_visibility_levels_restricted?
+    = _('Other visibility settings have been disabled by the administrator.')

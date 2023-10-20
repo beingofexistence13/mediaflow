@@ -1,0 +1,23 @@
+---
+data_category: optional
+key_path: counts.package_events_i_package_pypi_delete_package
+description: A count of Python packages that have been deleted from the package registry
+product_section: ops
+product_stage: package
+product_group: package
+value_type: number
+status: active
+time_frame: all
+data_source: redis
+instrumentation_class: RedisMetric
+options:
+  prefix: package_events
+  event: i_package_pypi_delete_package
+distribution:
+- ee
+- ce
+tier:
+- free
+- premium
+- ultimate
+milestone: "<13.9"

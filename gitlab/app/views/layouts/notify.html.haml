@@ -1,0 +1,34 @@
+%html{ lang: I18n.locale }
+  %head
+    %meta{ content: "text/html; charset=utf-8", "http-equiv" => "Content-Type" }
+    %title
+      GitLab
+    - if Feature.enabled?(:enhanced_notify_css)
+      = stylesheet_link_tag 'notify_enhanced'
+      %style{ type: 'text/css', 'data-premailer': 'ignore' }
+        -# The MUA automatically turns some text into links.
+        -# Match the color of explicit links ($blue-600 from typography.scss).
+        a { color: #1068bf; }
+    - else
+      = stylesheet_link_tag 'notify'
+    = yield :head
+  %body
+    .content
+      = html_header_message
+      = yield
+    .footer{ style: "margin-top: 10px;" }
+      %p
+        &mdash;
+        %br
+        - if @target_url
+          - if @reply_by_email
+            = _('Reply to this email directly or %{view_it_on_gitlab}.').html_safe % { view_it_on_gitlab: link_to(_("view it on GitLab"), @target_url) }
+          - else
+            #{link_to _('View it on GitLab'), @target_url}.
+          %br
+          = notification_reason_text(reason: @reason, show_manage_notifications_link: !@labels_url, show_help_link: true, manage_label_subscriptions_url: @labels_url, unsubscribe_url: @unsubscribe_url, format: :html)
+
+          = email_action @target_url
+
+        = render_if_exists 'layouts/email_additional_text'
+        = html_footer_message

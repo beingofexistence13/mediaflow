@@ -1,0 +1,154 @@
+.div-dropzone-wrapper {
+  .div-dropzone {
+    position: relative;
+
+    .div-dropzone-hover {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -11.5px;
+      margin-left: -15px;
+      opacity: 0;
+      font-size: 30px;
+      transition: opacity 200ms ease-in-out;
+      pointer-events: none;
+    }
+
+    .div-dropzone-spinner {
+      position: absolute;
+      bottom: 10px;
+      right: 5px;
+      opacity: 0;
+      font-size: 20px;
+      transition: opacity 200ms ease-in-out;
+    }
+
+    .div-dropzone-icon {
+      display: block;
+      text-align: center;
+      font-size: inherit;
+    }
+
+    .div-dropzone-progress {
+      position: absolute;
+      top: 7px;
+      left: -40px;
+      width: 35px;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .dz-preview {
+      display: none;
+    }
+  }
+}
+
+.md-header-tab {
+  @include media-breakpoint-down(xs) {
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    border-bottom: 1px solid $border-color;
+    text-align: center;
+  }
+}
+
+.nav-links {
+  li.md-header-toolbar {
+    margin-left: auto;
+    visibility: hidden;
+
+    &.active {
+      visibility: visible;
+
+      @include media-breakpoint-down(xs) {
+        flex: none;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        flex-wrap: wrap;
+        margin-top: $gl-padding-8;
+      }
+    }
+  }
+}
+
+.referenced-users {
+  color: $gl-text-color;
+  padding: 0 $gl-padding $gl-padding-8;
+}
+
+.referenced-commands {
+  $radius: $border-radius-default - 1px;
+  background: $blue-50;
+  padding: $gl-padding-8 $gl-padding;
+  border-radius: 0 0 $radius $radius;
+
+  p {
+    margin: 0;
+  }
+}
+
+.md-preview-holder {
+  min-height: 177px;
+  padding: 10px 0;
+  overflow-x: auto;
+}
+
+.markdown-area {
+  border-radius: 0;
+  background: $white;
+  border: 1px solid $gray-50;
+  min-height: 140px;
+  max-height: 500px;
+  padding: 5px;
+  box-shadow: none;
+  width: 100%;
+  resize: none !important;
+  transition: box-shadow $gl-transition-duration-medium ease;
+}
+
+.md-suggestion-diff {
+  display: table !important;
+  border: 1px solid $border-color !important;
+
+  td {
+    border: 0 !important;
+  }
+
+  tr.old {
+    td {
+      border-radius: 0 !important;
+    }
+  }
+}
+
+.suggestions.md > .markdown-code-block {
+  @include gl-static;
+}
+
+.md-suggestion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: $gray-light;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-default $border-radius-default 0 0;
+}
+
+.math-content-inline {
+  overflow: auto;
+  display: inline-flex;
+}
+
+.math-content-display {
+  overflow: auto;
+  display: block;
+}
+
+@include media-breakpoint-down(xs) {
+  .referenced-users {
+    margin-right: 0;
+  }
+}

@@ -1,0 +1,5 @@
+mutation stopEnvironment($environment: LocalEnvironment) {
+  stopEnvironmentREST(environment: $environment) @client {
+    errors
+  }
+}

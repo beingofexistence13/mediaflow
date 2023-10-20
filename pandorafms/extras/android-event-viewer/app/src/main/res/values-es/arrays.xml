@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+// Pandora FMS - http://pandorafms.com
+// ==================================================
+// Copyright (c) 2005-2023 Pandora FMS
+// Please see http://pandorafms.org for full contribution list
+
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; version 2
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details. 
+-->
+<resources>
+	<string-array name="severity_array_values">
+		<!-- You must subtract -1 -->
+        <item>Todos</item>
+        <item>Mantenimiento</item>
+        <item>Información</item>
+        <item>Normal</item>
+        <item>Alerta</item>
+        <item>Critico</item>
+	</string-array>
+
+	<!-- Please change the code in the function convertRefreshTimeKeyToTime -->
+	<string-array name="refresh_combo">
+        <item>30 segundos</item>
+        <item>1 minuto</item>
+        <item>5 minutos</item>
+        <item>10 minutos</item>
+        <item>15 minutos</item>
+        <item>30 minutos</item>
+        <item>45 minutos</item>
+        <item>1 hora</item>
+        <item>1 hora y 30 minutos</item>
+        <item>2 horas</item>
+        <item>3 horas</item>
+        <item>4 horas</item>
+        <item>6 horas</item>
+        <item>8 horas</item>
+        <item>10 horas</item>
+        <item>12 horas</item>
+        <item>24 horas</item>
+        <item>36 horas</item>
+        <item>48 horas</item>
+	</string-array>
+	<!-- Please change the code in the function timeout2arrayKey -->
+	<string-array name="timeout_connections_combo">
+        <item>5 segundos</item>
+        <item>10 segundos</item>
+        <item>20 segundos</item>
+        <item>30 segundos</item>
+        <item>40 segundos</item>
+        <item>50 segundos</item>
+        <item>1 minuto</item>
+    </string-array>
+	<string-array name="event_status_values">
+		<!-- You must subtract -1 -->
+		<!--<item>Todo los eventos</item> //The next version re-add please -->
+		
+		<!-- You must subtract 0 -->
+		<item>Solo los nuevos</item>
+		<item>Solo los validados</item>
+		<item>Solo los en proceso</item>
+		<item>Solo los no validados</item>
+	</string-array>
+	
+	<!-- Please change the code in the function convertMaxTimeOldEventValuesToTimestamp -->
+	<string-array name="max_time_old_event_values">
+		<item>30 minutos</item>
+		<item>1 hora</item>
+		<item>2 horas</item>
+		<item>3 horas</item>
+		<item>4 horas</item>
+		<item>5 horas</item>
+		<item>8 horas</item>
+		<item>10 horas</item>
+		<item>12 horas</item>
+		<item>1 día</item>
+		<item>2 días</item>
+		<item>3 días</item>
+		<item>4 días</item>
+		<item>5 días</item>
+		<item>1 semana</item>
+		<item>2 semanas</item>
+		<item>1 mes</item>
+	</string-array>
+</resources>

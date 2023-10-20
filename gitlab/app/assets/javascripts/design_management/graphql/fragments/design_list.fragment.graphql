@@ -1,0 +1,15 @@
+fragment DesignListItem on Design {
+  id
+  event
+  filename
+  notesCount
+  image
+  imageV432x230
+  description
+  descriptionHtml
+  currentUserTodos(state: pending) {
+    nodes {
+      id
+    }
+  }
+}

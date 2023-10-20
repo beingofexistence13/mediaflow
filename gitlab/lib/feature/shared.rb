@@ -1,0 +1,84 @@
+# frozen_string_literal: true
+
+# This file can contain only simple constructs as it is shared between:
+# 1. `Pure Ruby`: `bin/feature-flag`
+# 2. `GitLab Rails`: `lib/feature/definition.rb`
+
+module Feature
+  module Shared
+    # optional: defines if a on-disk definition is required for this feature flag type
+    # rollout_issue: defines if `bin/feature-flag` asks for rollout issue
+    # default_enabled: defines a default state of a feature flag when created by `bin/feature-flag`
+    # ee_only: defines that a feature flag can only be created in a context of EE
+    # deprecated: defines if a feature flag type that is deprecated and to be removed,
+    #             the deprecated types are hidden from all interfaces
+    # example: usage being shown when exception is raised
+    TYPES = {
+      development: {
+        description: 'Short lived, used to enable unfinished code to be deployed',
+        optional: false,
+        rollout_issue: true,
+        ee_only: false,
+        default_enabled: false,
+        example: <<-EOS
+          Feature.enabled?(:my_feature_flag, project)
+          Feature.enabled?(:my_feature_flag, project, type: :development)
+          push_frontend_feature_flag(:my_feature_flag, project)
+        EOS
+      },
+      ops: {
+        description: "Long-lived feature flags that control operational aspects of GitLab's behavior",
+        optional: false,
+        rollout_issue: true,
+        ee_only: false,
+        default_enabled: false,
+        example: <<-EOS
+          Feature.enabled?(:my_ops_flag, type: :ops)
+          push_frontend_feature_flag(:my_ops_flag, project, type: :ops)
+        EOS
+      },
+      undefined: {
+        description: "Feature flags that are undefined in GitLab codebase (should not be used)",
+        optional: true,
+        rollout_issue: false,
+        ee_only: false,
+        default_enabled: false,
+        example: ''
+      },
+      experiment: {
+        description: 'Short lived, used specifically to run A/B/n experiments.',
+        optional: true,
+        rollout_issue: true,
+        ee_only: false,
+        default_enabled: false,
+        example: <<-EOS
+          experiment(:my_experiment, project: project, actor: current_user) { ...variant code... }
+        EOS
+      },
+      worker: {
+        description: "Feature flags for controlling Sidekiq workers behavior (e.g. deferring jobs)",
+        optional: true,
+        rollout_issue: false,
+        ee_only: false,
+        default_enabled: false,
+        example: '<<-EOS
+          Feature.enabled?(:"defer_sidekiq_jobs:AuthorizedProjectsWorker", type: :worker,
+                            default_enabled_if_undefined: false)
+        EOS'
+      }
+    }.freeze
+
+    # The ordering of PARAMS defines an order in YAML
+    # This is done to ease the file comparison
+    PARAMS = %i[
+      name
+      introduced_by_url
+      rollout_issue_url
+      milestone
+      log_state_changes
+      type
+      group
+      default_enabled
+    ].freeze
+  end
+end

@@ -1,0 +1,20 @@
+# List of ignored warnings used by `fail_on_warnings` in `scripts/utils.sh`.
+# Each line is a regexp and represents a match used by
+# `grep --invert-match --extended-regexp --file`.
+# Comments and empty lines are ignored.
+
+# https://github.com/browserslist/browserslist/blob/d0ec62eb48c41c218478cd3ac28684df051cc865/node.js#L329
+# warns if caniuse-lite package is older than 6 months. Ignore this
+# warning message so that GitLab backports don't fail.
+Browserslist: caniuse-lite is outdated\. Please run next command `yarn upgrade`
+
+# This warning is emitted by scripts/static-analysis.
+\*\*\*\* .+ had the following warning\(s\):
+
+# As of Ruby 3.1, one-line typesafe/destructuring pattern matching via "rightward assignment" has
+# been included for multiple years with no significant negative feedback or indications of removal.
+# In the event that it is removed in a future Ruby release, the changes required to fix it are
+# isolated and minor, and will have no fundamental effect on the logic. See the section
+# "Rightward assignment pattern matching and destructuring with types" in
+# ee/lib/remote_development/README.md for more information and context.
+warning: One-line pattern matching is experimental, and the behavior may change in future versions of Ruby!

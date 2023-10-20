@@ -1,0 +1,32 @@
+- save_endpoint = local_assigns.fetch(:save_endpoint, nil)
+- is_group = !@group.nil?
+- is_project = !@project.nil?
+
+%p
+  = _('Variables can have several attributes.')
+  = link_to _('Learn more.'), help_page_path('ci/variables/index', anchor: 'define-a-cicd-variable-in-the-ui'), target: '_blank', rel: 'noopener noreferrer'
+%ul
+  %li
+    = html_escape(_('%{code_open}Protected:%{code_close} Only exposed to protected branches or protected tags.')) % { code_open: '<code>'.html_safe, code_close: '</code>'.html_safe }
+  %li
+    = html_escape(_('%{code_open}Masked:%{code_close} Hidden in job logs. Must match masking requirements.')) % { code_open: '<code>'.html_safe, code_close: '</code>'.html_safe }
+  %li
+    = html_escape(_('%{code_open}Expanded:%{code_close} Variables with %{code_open}$%{code_close} will be treated as the start of a reference to another variable.')) % { code_open: '<code>'.html_safe, code_close: '</code>'.html_safe }
+
+#js-ci-variables{ data: { endpoint: save_endpoint,
+  is_project: is_project.to_s,
+  project_id: @project&.id || '',
+  project_full_path: @project&.full_path || '',
+  is_group: is_group.to_s,
+  group_id: @group&.id || '',
+  group_path: @group&.full_path,
+  maskable_raw_regex: ci_variable_maskable_raw_regex,
+  maskable_regex: ci_variable_maskable_regex,
+  protected_by_default: ci_variable_protected_by_default?.to_s,
+  contains_variable_reference_link: help_page_path('ci/variables/index', anchor: 'prevent-cicd-variable-expansion'),
+  masked_environment_variables_link: help_page_path('ci/variables/index', anchor: 'mask-a-cicd-variable'),
+  environment_scope_link: help_page_path('ci/environments/index', anchor: 'limit-the-environment-scope-of-a-cicd-variable') } }
+
+- if !@group && @project.group
+  = render 'ci/group_variables/header'
+  = render 'ci/group_variables/index'

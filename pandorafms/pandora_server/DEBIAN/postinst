@@ -1,0 +1,114 @@
+#!/bin/bash
+
+get_distro () {
+	# Get Linux Distro type and version
+	# We assume we are on Linux unless told otherwise
+	LINUX=YES
+	if [ -f "/etc/SuSE-release" ]
+	then
+		OS_VERSION=`cat /etc/SuSE-release | grep VERSION | cut -f 3 -d " "`
+		LINUX_DISTRO=SUSE
+	elif [ -f "/etc/lsb-release" ]
+	then
+		OS_VERSION=`cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -f 2 -d "="`
+		LINUX_DISTRO=UBUNTU
+		OS_VERSION="UBUNTU $OS_VERSION"
+	elif [ -f "/etc/debian_version" ]
+	then
+		OS_VERSION=`cat /etc/debian_version`
+		OS_VERSION="DEBIAN $OS_VERSION"
+		LINUX_DISTRO=DEBIAN
+	elif [ -f "/etc/fedora-release" ]
+	then
+		OS_VERSION=`cat /etc/fedora-release | cut -f 4 -d " "`
+		OS_VERSION="FEDORA $OS_VERSION"
+		LINUX_DISTRO=FEDORA
+	elif [ `uname -s` == "Darwin" ]
+	then
+		# For future reference, Darwin doesn't have /etc/init.d but uses LaunchDaemons
+		LINUX_DISTRO="Darwin"
+		OS_VERSION=`uname -r`
+		LINUX=NO
+	elif [ `uname -s` == "AIX" ]
+        then
+                # For future reference, AIX doesn't have /etc/init.d
+                LINUX_DISTRO="AIX"
+                OS_VERSION=`uname -r`
+                LINUX=NO
+	elif [ `uname -s` == "SunOS" ]
+	then
+		# Some Solaris and other Unices don't have /etc/init.d, some have /usr/spool instead of /var/spool
+		LINUX_DISTRO="Solaris"
+		OS_VERSION=`uname -r`
+		LINUX=NO
+	elif [ `uname -s` == "Linux" ]
+	then
+		# Test for Linux to make sure we're on Linux
+		LINUX_DISTRO="GENERIC"
+		OS_VERSION=`uname -r`
+	else
+		# Default to Linux is false, test for real Linux above - that way we don't assume we can just plunk down files everywhere
+		LINUX_DISTRO=`uname -s`
+		OS_VERSION=`uname -r`
+		LINUX=NO
+	fi
+	echo "$LINUX_DISTRO:$OS_VERSION:$LINUX"
+}
+
+echo "Linking pandora_exec..."
+ln -s /usr/bin/pandora_exec.server /usr/bin/pandora_exec 2> /dev/null
+
+
+echo "Creating common Pandora FMS directories"
+useradd pandora 2> /dev/null
+mkdir -p /home/pandora/.ssh 2> /dev/null
+chown -R pandora:root /home/pandora 
+chmod 755 /usr/bin/tentacle_server
+chmod 755 /usr/bin/pandora_ha
+
+echo "Giving proper permission to /var/spool/pandora"
+chown -R pandora:www-data /var/spool/pandora/ 
+
+echo "Creating setup directory in /etc/pandora"
+mkdir /etc/pandora 2> /dev/null
+
+#Check if exist old conf files
+if [ ! -e /etc/pandora/pandora_server.conf ]
+then
+	cp /usr/share/pandora_server/conf/pandora_server.conf.new /etc/pandora/pandora_server.conf
+	chmod 600 /etc/pandora/pandora_server.conf
+else
+	cp /usr/share/pandora_server/conf/pandora_server.conf.new /etc/pandora/pandora_server.conf.new
+	echo "Skipping creation of pandora_server.conf: there is already one."
+fi
+if [ ! -e /etc/tentacle/tentacle_server.conf ]
+then
+	cp /usr/share/tentacle_server/conf/tentacle_server.conf.new /etc/tentacle/tentacle_server.conf
+	chmod 664 /etc/tentacle/tentacle_server.conf
+else
+	cp /usr/share/tentacle_server/conf/tentacle_server.conf.new /etc/tentacle/tentacle_server.conf.new
+	echo "Skipping creation of tentacle_server.conf: there is already one."
+fi
+
+echo "Enabling start-up pandora & tentacle server daemons";
+if [ -x `command -v systemctl` ]; then
+  systemctl daemon-reload
+  systemctl enable pandora_server
+  systemctl enable tentacle_serverd
+else
+  update-rc.d pandora_server defaults
+  update-rc.d tentacle_serverd defaults
+fi
+
+if [ -d /etc/cron.hourly ]
+then
+	echo "Create the Cron script to run hourly Pandora DB tool"
+	echo "#!/bin/bash" > /etc/cron.hourly/pandora_db	
+	echo "perl /usr/share/pandora_server/util/pandora_db.pl /etc/pandora/pandora_server.conf" >> /etc/cron.hourly/pandora_db	
+	chmod 750 /etc/cron.hourly/pandora_db
+else
+	echo "You're probably not using cron for automatic scheduling. You should schedule the following command to run frequently (each hour) on your master server:"
+	echo "   perl /usr/share/pandora_server/util/pandora_db.pl /etc/pandora/pandora_server.conf"
+fi
+
+echo "Please, now, edit the /etc/pandora/pandora_server.conf and launch the Pandora Server with /etc/init.d/Pandora ."

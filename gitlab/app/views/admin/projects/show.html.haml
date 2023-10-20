@@ -1,0 +1,214 @@
+- add_page_specific_style 'page_bundles/members'
+- add_page_specific_style 'page_bundles/projects'
+- add_to_breadcrumbs _("Projects"), admin_projects_path
+- breadcrumb_title @project.full_name
+- page_title @project.full_name, _("Projects")
+- current_user_is_group_owner = @group && @group.has_owner?(current_user)
+
+%h1.page-title.gl-font-size-h-display
+  = _('Project: %{name}') % { name: @project.full_name }
+  = render Pajamas::ButtonComponent.new(href: edit_admin_namespace_project_path({ id: @project.to_param, namespace_id: @project.namespace.to_param }),
+    icon: 'pencil',
+    button_options: { class: 'gl-float-right'}) do
+    = _('Edit')
+%hr
+- if @project.last_repository_check_failed?
+  .row
+    .col-md-12
+      = render Pajamas::AlertComponent.new(variant: :danger,
+        alert_options: { class: 'gl-mb-5',
+                         data: { testid: 'last-repository-check-failed-alert' }}) do |c|
+        - c.with_body do
+          - last_check_message = _("Last repository check (%{last_check_timestamp}) failed. See the 'repocheck.log' file for error messages.")
+          - last_check_message = last_check_message % { last_check_timestamp: time_ago_with_tooltip(@project.last_repository_check_at) }
+          = last_check_message.html_safe
+.row
+  .col-md-6
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-5' }, body_options: { class: 'gl-p-0' }) do |c|
+      - c.with_header do
+        = _('Project info:')
+      - c.with_body do
+        %ul.content-list
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('Name:')
+            %strong
+              = link_to @project.name, project_path(@project)
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('Namespace:')
+            %strong
+              - if @project.namespace
+                = link_to @project.namespace.human_name, [:admin, @project.personal? ? @project.namespace.owner : @project.group]
+              - else
+                = s_('ProjectSettings|Global')
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('Owned by:')
+            %strong
+              - if @project.owners.any?
+                = safe_join(@project.owners.map { |owner| link_to(owner.name, [:admin, owner]) }, ", ".html_safe)
+              - else
+                = _('(deleted)')
+
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('Created by:')
+            %strong
+              = @project.creator.try(:name) || _('(deleted)')
+
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('Created on:')
+            %strong
+              = @project.created_at.to_fs(:medium)
+
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('ID:')
+            %strong
+              = @project.id
+
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('http:')
+            %strong
+              = link_to @project.http_url_to_repo, project_path(@project)
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('ssh:')
+            %strong
+              = link_to @project.ssh_url_to_repo, project_path(@project)
+          - if @project.repository.exists?
+            %li{ class: 'gl-px-5!' }
+              %span.light
+                = s_('ProjectSettings|Storage name:')
+              %strong
+                = @project.repository.storage
+              %br
+              %small.gl-text-secondary
+                = s_('ProjectSettings|For Gitaly, name of the storage that stores the repository. For Gitaly Cluster, name of the virtual storage that stores the repository.')
+            %li{ class: 'gl-px-5!' }
+              %span.light
+                = s_('ProjectSettings|Relative path:')
+              %strong
+                = @project.repository.relative_path
+              %br
+              %small.gl-text-secondary
+                = s_('ProjectSettings|For Gitaly, location of data on the storage. For Gitaly Cluster, location of data on the virtual storage.')
+
+            %li{ class: 'gl-px-5!' }
+              = render 'shared/storage_counter_statistics', storage_size: @project.statistics&.storage_size, storage_details: @project.statistics
+
+            %li{ class: 'gl-px-5!' }
+              %span.light
+                = _('last commit:')
+              %strong
+                = last_commit(@project)
+
+            %li{ class: 'gl-px-5!' }
+              %span.light
+                = _('Git LFS status:')
+              %strong
+                = project_lfs_status(@project)
+                = link_to sprite_icon('question-o'), help_page_path('topics/git/lfs/index')
+          - else
+            %li{ class: 'gl-px-5!' }
+              %span.light
+                = _('repository:')
+              %strong.cred
+                = _('does not exist')
+
+          - if @project.archived?
+            %li{ class: 'gl-px-5!' }
+              %span.light
+                = _('archived:')
+              %strong
+                = _('project is read-only')
+
+          = render_if_exists "admin/projects/shared_runner_status", project: @project
+
+          %li{ class: 'gl-px-5!' }
+            %span.light
+              = _('access:')
+            %strong
+              = visibility_level_content(@project, css_class: visibility_level_color(@project.visibility_level))
+              - if @project.created_and_owned_by_banned_user? && Feature.enabled?(:hide_projects_of_banned_users)
+                = _('This project is hidden because its creator has been banned')
+              - else
+                = visibility_level_label(@project.visibility_level)
+
+    = render 'shared/custom_attributes', custom_attributes: @project.custom_attributes
+
+    = render_if_exists 'admin/projects/geo_status_widget', locals: { project: @project }
+
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-5' }) do |c|
+      - c.with_header do
+        = s_('ProjectSettings|Transfer project')
+      - c.with_body do
+        = gitlab_ui_form_for @project, url: transfer_admin_project_path(@project), method: :put do |f|
+          .form-group.row
+            .col-sm-3.col-form-label
+              = f.label :new_namespace_id, _("Namespace")
+            .col-sm-9
+              .js-namespace-select{ data: { field_name: 'new_namespace_id', toggle_text_placeholder: _('Search for Namespace') } }
+
+          .form-group.row
+            .offset-sm-3.col-sm-9
+              = f.submit _('Transfer'), pajamas_button: true
+
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-5 repository-check' }) do |c|
+      - c.with_header do
+        = _("Repository check")
+      - c.with_body do
+        = gitlab_ui_form_for @project, url: repository_check_admin_project_path(@project), method: :post do |f|
+          .form-group
+            - if @project.last_repository_check_at.nil?
+              = _("This repository has never been checked.")
+            - elsif @project.last_repository_check_failed?
+              - failed_message = _("This repository was last checked %{last_check_timestamp}. The check %{strong_start}failed.%{strong_end} See the 'repocheck.log' file for error messages.")
+              - failed_message = failed_message % { last_check_timestamp: @project.last_repository_check_at.to_fs(:medium), strong_start: "<strong class='cred'>", strong_end: "</strong>" }
+              = failed_message.html_safe
+            - else
+              = _("This repository was last checked %{last_check_timestamp}. The check passed.") % { last_check_timestamp: @project.last_repository_check_at.to_fs(:medium) }
+
+            = link_to sprite_icon('question-o'), help_page_path('administration/repository_checks')
+
+          .form-group
+            = f.submit _('Trigger repository check'), pajamas_button: true
+
+  .col-md-6
+    - if @group
+      = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-5' }, body_options: { class: 'gl-p-0' }, footer_options: { class: 'gl-p-4' }) do |c|
+        - c.with_header do
+          %strong= @group.name
+          = _('group members')
+          = gl_badge_tag @group_members.size
+          = render 'shared/members/manage_access_button', path: group_group_members_path(@group)
+        - c.with_body do
+          %ul.content-list.members-list
+            = render partial: 'shared/members/member',
+                    collection: @group_members, as: :member,
+                    locals: { membership_source: @project,
+                              group: @group,
+                              current_user_is_group_owner: current_user_is_group_owner }
+        - c.with_footer do
+          = paginate @group_members, param_name: 'group_members_page', theme: 'gitlab'
+
+    = render 'shared/members/requests', membership_source: @project, group: @group, requesters: @requesters
+
+    = render Pajamas::CardComponent.new(card_options: { class: 'gl-mb-5' }, body_options: { class: 'gl-p-0' }, footer_options: { class: 'gl-p-4' }) do |c|
+      - c.with_header do
+        %strong= @project.name
+        = _('project members')
+        = gl_badge_tag @project.users.size
+        = render 'shared/members/manage_access_button', path: project_project_members_path(@project)
+      - c.with_body do
+        %ul.content-list.project_members.members-list
+          = render partial: 'shared/members/member',
+                  collection: @project_members, as: :member,
+                  locals: { membership_source: @project,
+                            group: @group,
+                            current_user_is_group_owner: current_user_is_group_owner }
+      - c.with_footer do
+        = paginate @project_members, param_name: 'project_members_page', theme: 'gitlab'

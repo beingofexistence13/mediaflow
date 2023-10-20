@@ -1,0 +1,21 @@
+- page_title _("Fork project")
+- if @forked_project && !@forked_project.saved?
+  = render Pajamas::AlertComponent.new(title: _('Fork Error!'),
+    variant: :danger,
+    alert_options: { class: 'gl-mt-5' },
+    dismissible: false) do |c|
+    - c.with_body do
+      %p
+        = _("You tried to fork %{link_to_the_project} but it failed for the following reason:").html_safe % { link_to_the_project: link_to_project(@project) }
+
+      - if @forked_project && @forked_project.errors.any?
+        %p
+          &ndash;
+          - error = @forked_project.errors.full_messages.first
+          - if error.include?("already been taken")
+            = _('Name has already been taken')
+          - else
+            = error
+
+    - c.with_actions do
+      = link_button_to _('Try to fork again'), new_project_fork_path(@project), title: _("Fork"), class: 'gl-alert-action', variant: :confirm

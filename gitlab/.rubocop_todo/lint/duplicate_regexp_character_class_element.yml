@@ -1,0 +1,5 @@
+---
+# Cop supports --autocorrect.
+Lint/DuplicateRegexpCharacterClassElement:
+  Exclude:
+    - 'lib/gitlab/path_regex.rb'

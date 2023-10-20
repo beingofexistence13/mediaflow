@@ -1,0 +1,3 @@
+- unless @project.empty_repo?
+  - if current_user
+    #js-forks-button{ data: fork_button_data_attributes(@project) }

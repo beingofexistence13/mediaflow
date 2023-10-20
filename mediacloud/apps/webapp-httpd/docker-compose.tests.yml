@@ -1,0 +1,237 @@
+version: "3.7"
+
+services:
+
+    webapp-httpd:
+        image: gcr.io/mcback/webapp-httpd:latest
+        init: true
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host for debugging
+            - "8080:80"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/nginx.conf
+              target: /etc/nginx/nginx.conf
+            # Shared with "cron-generate-daily-rss-dumps":
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
+        depends_on:
+            - webapp-api
+            - cron-generate-daily-rss-dumps
+
+    webapp-api:
+        image: gcr.io/mcback/webapp-api:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "9090"
+        volumes:
+            - type: bind
+              source: ./../webapp-api/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../webapp-api/src/
+              target: /opt/mediacloud/src/webapp-api/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+            - rabbitmq-server
+            - rescrape-media
+            - word2vec-generate-snapshot-model
+            # test_topics_api.t snapshots a topic
+            - topics-snapshot
+            # Multiple tests import Solr data
+            - import-solr-data-for-testing
+        deploy:
+            # Try running multiple replicas to see whether FastCGI will be able to use them
+            replicas: 2
+
+    cron-generate-daily-rss-dumps:
+        image: gcr.io/mcback/cron-generate-daily-rss-dumps:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            # Shared with "webapp-httpd":
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+            - type: bind
+              source: ./../cron-generate-daily-rss-dumps/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../cron-base/bin/cron.sh
+              target: /cron.sh
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+
+    postgresql-pgbouncer:
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/pgmigrate/
+              target: /opt/postgresql-server/pgmigrate/
+            - type: bind
+              source: ./../postgresql-server/etc/postgresql/14/extra/
+              target: /etc/postgresql/14/extra/
+            - type: bind
+              source: ./../postgresql-base/etc/postgresql/14/main/
+              target: /etc/postgresql/14/main/
+
+    solr-shard-01:
+        image: gcr.io/mcback/solr-shard:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - type: bind
+              source: ./../solr-base/src/solr/
+              target: /usr/src/solr/
+            - type: bind
+              source: ./../solr-shard/bin/solr-shard.sh
+              target: /solr-shard.sh
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: gcr.io/mcback/solr-zookeeper:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
+
+    rabbitmq-server:
+        image: gcr.io/mcback/rabbitmq-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - type: bind
+              source: ./../rabbitmq-server/conf/
+              target: /etc/rabbitmq/
+
+    rescrape-media:
+        image: gcr.io/mcback/rescrape-media:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../rescrape-media/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../rescrape-media/src/
+              target: /opt/mediacloud/src/rescrape-media/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+
+    word2vec-generate-snapshot-model:
+        image: gcr.io/mcback/word2vec-generate-snapshot-model:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../word2vec-generate-snapshot-model/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../word2vec-generate-snapshot-model/src/
+              target: /opt/mediacloud/src/word2vec-generate-snapshot-model/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+
+    topics-snapshot:
+        image: gcr.io/mcback/topics-snapshot:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+        volumes:
+            - type: bind
+              source: ./../topics-snapshot/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../topics-snapshot/src/
+              target: /opt/mediacloud/src/topics-snapshot/
+            - type: bind
+              source: ./../topics-base/src/
+              target: /opt/mediacloud/src/topics-base/
+            - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+            - rabbitmq-server
+            - import-solr-data-for-testing
+
+    import-solr-data-for-testing:
+        image: gcr.io/mcback/import-solr-data-for-testing:latest
+        init: true
+        environment:
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../import-solr-data-for-testing/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../import-solr-data/src/
+              target: /opt/mediacloud/src/import-solr-data/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+
+volumes:
+    vol_daily_rss_dumps: {}

@@ -1,0 +1,44 @@
+- breadcrumb_title s_('AccessTokens|Access Tokens')
+- page_title _('Project Access Tokens')
+- type = _('project access token')
+- type_plural = _('project access tokens')
+- @force_desktop_expanded_sidebar = true
+
+.settings-section.js-search-settings-section
+  .settings-sticky-header
+    .settings-sticky-header-inner
+      %h4.gl-my-0
+        = page_title
+  %p.gl-text-secondary
+    - help_link_start = '<a href="%{url}" target="_blank" rel="noopener noreferrer">'.html_safe % { url: help_page_path('user/project/settings/project_access_tokens') }
+    - if current_user.can?(:create_resource_access_tokens, @project)
+      = _('Generate project access tokens scoped to this project for your applications that need access to the GitLab API.')
+      = _('You can also use project access tokens with Git to authenticate over HTTP(S). %{link_start}Learn more.%{link_end}').html_safe % { link_start: help_link_start, link_end: '</a>'.html_safe }
+    - else
+      = _('Project access token creation is disabled in this group.')
+      - root_group = @project.group.root_ancestor
+      - if current_user.can?(:admin_group, root_group)
+        - link = link_to('', edit_group_path(root_group), target: '_blank', rel: 'noopener noreferrer')
+        = safe_format(_('You can enable project access token creation in %{link_start}group settings%{link_end}.'), tag_pair(link, :link_start, :link_end))
+      = html_escape(_('You can still use and manage existing tokens. %{link_start}Learn more.%{link_end}')) % { link_start: help_link_start, link_end: '</a>'.html_safe }
+
+  #js-new-access-token-app{ data: { access_token_type: type } }
+
+  = render Pajamas::CardComponent.new(card_options: { class: 'gl-new-card gl-border-b-0 gl-rounded-bottom-left-none gl-rounded-bottom-right-none js-toggle-container js-token-card' }, header_options: { class: 'gl-new-card-header' }, body_options: { class: 'gl-new-card-body' }) do |c|
+    - c.with_header do
+      .gl-new-card-title-wrapper
+        %h3.gl-new-card-title
+          = _('Active project access tokens')
+        .gl-new-card-count
+          = sprite_icon('token', css_class: 'gl-mr-2')
+          %span.js-token-count= @active_access_tokens.size
+      - if current_user.can?(:create_resource_access_tokens, @project)
+        .gl-new-card-actions
+          = render Pajamas::ButtonComponent.new(size: :small, button_options: { class: 'js-toggle-button js-toggle-content', data: { testid: 'add-new-token-button' } }) do
+            = _('Add new token')
+    - c.with_body do
+      - if current_user.can?(:create_resource_access_tokens, @project)
+        .gl-new-card-add-form.gl-mt-3.gl-display-none.js-toggle-content.js-add-new-token-form
+          = render_if_exists 'projects/settings/access_tokens/form', type: type
+
+  #js-access-token-table-app{ data: { access_token_type: type, access_token_type_plural: type_plural, initial_active_access_tokens: @active_access_tokens.to_json, no_active_tokens_message: _('This project has no active access tokens.'), show_role: true } }

@@ -1,0 +1,14 @@
+mutation workItemSubscribe($input: WorkItemSubscribeInput!) {
+  workItemSubscribe(input: $input) {
+    errors
+    workItem {
+      id
+      widgets {
+        ... on WorkItemWidgetNotifications {
+          type
+          subscribed
+        }
+      }
+    }
+  }
+}

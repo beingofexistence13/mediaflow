@@ -1,0 +1,16 @@
+query ProjectBoardMilestones($fullPath: ID!, $searchTerm: String, $state: MilestoneStateEnum) {
+  workspace: project(fullPath: $fullPath) {
+    id
+    milestones(
+      searchTitle: $searchTerm
+      includeAncestors: true
+      state: $state
+      sort: EXPIRED_LAST_DUE_DATE_ASC
+    ) {
+      nodes {
+        id
+        title
+      }
+    }
+  }
+}

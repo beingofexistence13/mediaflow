@@ -1,0 +1,99 @@
+@mixin build-content($border-radius: 30px) {
+  display: inline-block;
+  padding: 8px 10px 9px;
+  width: 100%;
+  border: 1px solid var(--border-color, $border-color);
+  border-radius: $border-radius;
+  background-color: var(--white, $white);
+
+  &:hover {
+    background-color: var(--gray-50, $gray-50);
+    border: 1px solid $dropdown-toggle-active-border-color;
+    color: var(--gl-text-color, $gl-text-color);
+  }
+}
+
+/**
+ Action icons inside dropdowns:
+ - mini graph in pipelines table
+ - dropdown in big graph
+ - mini graph in MR widget pipeline
+ - mini graph in Commit widget pipeline
+*/
+@mixin pipeline-graph-dropdown-menu() {
+  width: auto;
+  max-width: 400px;
+
+  // override dropdown.scss
+  &.dropdown-menu li button,
+  &.dropdown-menu li a.ci-action-icon-container {
+    padding: 0;
+    text-align: center;
+  }
+
+  .ci-action-icon-container {
+    position: absolute;
+    right: 11px;
+    top: 7px;
+
+    &.ci-action-icon-wrapper {
+      height: $ci-action-dropdown-button-size;
+      width: $ci-action-dropdown-button-size;
+      border-radius: 50%;
+      display: block;
+
+      &:hover {
+        box-shadow: inset 0 0 0 2px var(--gray-400, $gray-400);
+        background-color: var(--gray-50, $gray-50);
+      }
+
+      .gl-spinner,
+      svg {
+        width: $ci-action-dropdown-svg-size;
+        height: $ci-action-dropdown-svg-size;
+        position: relative;
+        vertical-align: initial;
+      }
+    }
+  }
+
+  // SVGs in the commit widget and mr widget
+  a.ci-action-icon-container.ci-action-icon-wrapper svg {
+    top: 5px;
+  }
+
+  .scrollable-menu {
+    padding: 0;
+    max-height: 245px;
+    overflow: auto;
+  }
+
+  li {
+    position: relative;
+
+    // link to the build
+    .pipeline-job-item {
+      align-items: center;
+      clear: both;
+      display: flex;
+      font-weight: normal;
+      line-height: $line-height-base;
+      white-space: nowrap;
+
+      // Match dropdown.scss for all `a` tags
+      &.non-details-job-component {
+        padding: $gl-padding-8 $gl-btn-horz-padding;
+      }
+    }
+
+    // ensure .pipeline-job-item has hover style when action-icon is hovered
+    &:hover > .pipeline-job-item,
+    &:hover > .ci-job-component > .pipeline-job-item,
+    .pipeline-job-item:hover,
+    .pipeline-job-item:focus {
+      outline: none;
+      text-decoration: none;
+      background-color: var(--gray-100, $gray-50);
+    }
+  }
+}

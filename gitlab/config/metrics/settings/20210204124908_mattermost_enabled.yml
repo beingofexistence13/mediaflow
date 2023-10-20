@@ -1,0 +1,20 @@
+---
+data_category: optional
+key_path: mattermost_enabled
+description: Whether Mattermost is enabled
+product_section: dev
+product_stage: manage
+product_group: integrations
+value_type: boolean
+status: active
+time_frame: none
+data_source: system
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"

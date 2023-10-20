@@ -1,0 +1,135 @@
+version: "3.7"
+
+services:
+
+    munin-httpd:
+        image: gcr.io/mcback/munin-httpd:latest
+        init: true
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host for debugging
+            - "4948:4948"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/nginx.conf
+              target: /etc/nginx/nginx.conf
+            # Shared with munin-cron:
+            - vol_munin_html:/var/cache/munin/www/
+        depends_on:
+            - munin-fastcgi-graph
+            - munin-cron
+
+    munin-fastcgi-graph:
+        image: gcr.io/mcback/munin-fastcgi-graph:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 22334
+        volumes:
+            # Shared with munin-cron:
+            - vol_munin_data:/var/lib/munin/
+
+    munin-cron:
+        image: gcr.io/mcback/munin-cron:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_MUNIN_CRON_ALERT_EMAIL: "FIXME@mediacloud.org"
+        volumes:
+            - type: bind
+              source: ./../munin-cron/munin-conf.d/
+              target: /etc/munin/munin-conf.d/
+            # Shared with munin-fastcgi-graph:
+            - vol_munin_data:/var/lib/munin/
+            # Shared with munin-httpd:
+            - vol_munin_html:/var/cache/munin/www/
+        depends_on:
+            - munin-node
+
+    munin-node:
+        image: gcr.io/mcback/munin-node:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../munin-node/plugins/
+              target: /etc/munin/plugins/
+        depends_on:
+            # Monitors a bunch of stuff on PostgreSQL
+            - postgresql-pgbouncer
+            # Monitors stuff on Solr too
+            - solr-shard-01
+
+    postgresql-pgbouncer:
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/pgmigrate/
+              target: /opt/postgresql-server/pgmigrate/
+            - type: bind
+              source: ./../postgresql-server/etc/postgresql/14/extra/
+              target: /etc/postgresql/14/extra/
+            - type: bind
+              source: ./../postgresql-base/etc/postgresql/14/main/
+              target: /etc/postgresql/14/main/
+
+    solr-shard-01:
+        image: gcr.io/mcback/solr-shard:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - type: bind
+              source: ./../solr-base/src/solr/
+              target: /usr/src/solr/
+            - type: bind
+              source: ./../solr-shard/bin/solr-shard.sh
+              target: /solr-shard.sh
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: gcr.io/mcback/solr-zookeeper:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
+
+volumes:
+    vol_munin_data: {}
+    vol_munin_html: {}

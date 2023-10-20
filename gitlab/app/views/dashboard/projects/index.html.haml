@@ -1,0 +1,16 @@
+= content_for :meta_tags do
+  = auto_discovery_link_tag(:atom, dashboard_projects_url(rss_url_options), title: "All activity")
+
+= render_dashboard_ultimate_trial(current_user)
+
+- page_title _("Projects")
+- add_page_specific_style 'page_bundles/dashboard_projects'
+- add_page_specific_style 'page_bundles/projects'
+
+= render "projects/last_push"
+- if show_projects?(@projects, params)
+  = render 'dashboard/projects_head'
+  = render 'nav'
+  = render 'projects'
+- else
+  = render "zero_authorized_projects"

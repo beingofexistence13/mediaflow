@@ -1,0 +1,111 @@
+- breadcrumb_title _("Preferences")
+- page_title _("Preferences")
+- add_page_specific_style 'page_bundles/settings'
+- @force_desktop_expanded_sidebar = true
+
+%section.settings.as-email.no-animate#js-email-settings{ class: ('expanded' if expanded_by_default?), data: { testid: 'email-content' } }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Email')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Various email settings.')
+  .settings-content
+    = render 'email'
+
+%section.settings.as-whats-new-page.no-animate#js-whats-new-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _("What's new")
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _("Configure %{italic_start}What's new%{italic_end} drawer and content.").html_safe % { italic_start: '<i>'.html_safe, italic_end: '</i>'.html_safe }
+  .settings-content
+    = render 'whats_new'
+
+%section.settings.as-help-page.no-animate#js-help-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Sign-in and Help page')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Additional text for the sign-in and Help page.')
+      = link_to _('Learn more.'), help_page_path('administration/settings/help_page.md'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    = render 'help_page'
+
+%section.settings.as-pages.no-animate#js-pages-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Pages')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = s_('AdminSettings|Size and domain settings for Pages static sites.')
+  .settings-content
+    = render 'pages'
+
+%section.settings.as-realtime.no-animate#js-realtime-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Polling interval multiplier')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Adjust how frequently the GitLab UI polls for updates.')
+      = link_to _('Learn more.'), help_page_path('administration/polling.md'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    = render 'realtime'
+
+%section.settings.as-gitaly.no-animate#js-gitaly-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Gitaly timeouts')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Configure Gitaly timeouts.')
+      %span
+        = link_to _('Learn more.'), help_page_path('administration/settings/gitaly_timeouts.md'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    = render 'gitaly'
+
+%section.settings.as-localization.no-animate#js-localization-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Localization')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Configure the default first day of the week, time tracking units, and default language.')
+  .settings-content
+    = render 'localization'
+
+%section.settings.as-sidekiq-job-limits.no-animate#js-sidekiq-job-limits-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Sidekiq job size limits')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Limit the size of Sidekiq jobs stored in Redis.')
+      %span
+        = link_to _('Learn more.'), help_page_path('administration/settings/sidekiq_job_limits.md'), target: '_blank', rel: 'noopener noreferrer'
+
+  .settings-content
+    = render 'sidekiq_job_limits'
+
+%section.settings.as-terraform-limits.no-animate#js-terraform-limits-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = s_('TerraformLimits|Terraform limits')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = s_('TerraformLimits|Limits for Terraform features')
+      = link_to s_('TerraformLimits|Learn more about Terraform limits.'), help_page_path('administration/settings/terraform_limits.md'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    = render 'terraform_limits'

@@ -1,0 +1,19 @@
+---
+data_category: optional
+key_path: usage_activity_by_stage.monitor.clusters
+description: Users creating clusters.
+product_section: ops
+product_stage: monitor
+product_group: monitor
+value_type: number
+status: active
+time_frame: all
+data_source: database
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+milestone: "<13.9"

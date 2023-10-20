@@ -1,0 +1,243 @@
+@import 'mixins_and_variables_and_functions';
+
+.is-ghost {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.boards-app {
+  height: calc(#{$calc-application-viewport-height} - var(--header-height, 48px));
+  display: flex;
+  flex-direction: column;
+
+  @include media-breakpoint-up(sm) {
+    transition: width $gl-transition-duration-medium;
+    width: 100%;
+
+    &.is-compact {
+      width: calc(100% - #{$right-sidebar-width});
+    }
+  }
+}
+
+.boards-list,
+.board-swimlanes {
+  flex-grow: 1;
+  border-left: 8px solid var(--gray-10, $white);
+
+  min-height: calc(#{$calc-application-viewport-height} - var(--header-height));
+
+  @include media-breakpoint-up(sm) {
+    min-height: 0;
+  }
+}
+
+.board {
+  width: calc(85vw - 15px);
+
+  @include media-breakpoint-up(sm) {
+    width: 400px;
+  }
+
+  &.is-collapsed {
+    .board-title-text > span,
+    .issue-count-badge > span {
+      height: 16px;
+
+      // Force the height to be equal to the parent's width while centering the contents.
+      // The contents *should* be about 16 px.
+      // We do this because the flow of elements isn't affected by the rotate transform, so we must ensure that a
+      // rotated element has square dimensions so it won't overlap with its siblings.
+      margin: calc(50% - 8px) 0;
+      max-width: 50vh;
+
+      transform-origin: center;
+    }
+  }
+}
+
+// to highlight columns we have animated pulse of box-shadow
+// we don't want to actually animate the box-shadow property
+// because that causes costly repaints. Instead we can add a
+// pseudo-element that is the same size as our element, then
+// animate opacity/transform to give a soothing single pulse
+.board-column-highlighted::after {
+  @include gl-focus;
+  content: '';
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  left: -1px;
+  right: -1px;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: $border-radius-default;
+  animation-name: board-column-flash-border;
+  animation-duration: 1.2s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes board-column-flash-border {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  25%,
+  75% {
+    opacity: 1;
+  }
+}
+
+.board-card {
+  background: var(--gray-10, $white);
+  box-shadow: 0 1px 2px rgba(var(--black, $black), 0.1);
+
+  &:last-child {
+    @include gl-mb-0;
+  }
+
+  .move-to-position {
+    visibility: hidden;
+  }
+
+  &:hover .move-to-position {
+    visibility: visible;
+  }
+
+  @include media-breakpoint-down(sm) {
+    .move-to-position {
+      visibility: visible;
+    }
+  }
+}
+
+.board-card-title a {
+  @include media-breakpoint-down(md) {
+    font-size: $gl-font-size-sm;
+  }
+}
+
+.board-card-assignee {
+  .avatar-counter {
+    min-width: $gl-padding-24;
+    height: $gl-padding-24;
+    border-radius: $gl-padding-24;
+    font-size: $gl-font-size-xs;
+
+    @include media-breakpoint-down(md) {
+      min-width: auto;
+      height: $gl-padding;
+      border-radius: $gl-padding;
+      line-height: $gl-padding;
+    }
+  }
+
+  .user-avatar-link:not(:only-child) {
+    margin-left: -$gl-padding;
+
+    &:nth-of-type(1) {
+      z-index: 2;
+    }
+
+    &:nth-of-type(2) {
+      z-index: 1;
+    }
+  }
+
+  .avatar {
+    @include media-breakpoint-down(md) {
+      width: $gl-padding;
+      height: $gl-padding;
+    }
+  }
+
+  @include media-breakpoint-down(md) {
+    margin-bottom: 0 !important;
+  }
+}
+
+.board-card-number {
+  @include media-breakpoint-down(md) {
+    font-size: $gl-font-size-sm;
+  }
+}
+
+.board-list-count {
+  font-size: 13px;
+}
+
+.board-card-info {
+  &.board-card-weight:hover {
+    color: initial;
+  }
+
+  .board-card-info-icon {
+    vertical-align: text-top;
+  }
+
+  @include media-breakpoint-down(md) {
+    font-size: $label-font-size;
+  }
+}
+
+.board-item-path.js-show-tooltip {
+  cursor: help;
+}
+
+.issue-boards-content:not(.breadcrumbs) {
+  isolation: isolate;
+}
+
+.issue-boards-content.is-focused {
+  $focus-mode-z-index: 9000;
+
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: var(--white, $white);
+  z-index: $focus-mode-z-index;
+
+  @include media-breakpoint-down(sm) {
+    padding-top: 10px;
+  }
+
+  .boards-app {
+    height: 100vh;
+  }
+
+  // Use !important for these as top and z-index are set on style attribute
+  // in gitlab-ui; https://gitlab.com/gitlab-org/gitlab-ui/-/issues/1805
+  ~ #js-right-sidebar-portal .boards-sidebar {
+    top: 0 !important;
+    z-index: calc(#{$focus-mode-z-index} + 1) !important;
+  }
+}
+
+.boards-sidebar {
+  top: $calc-application-header-height !important;
+  height: auto;
+  bottom: $calc-application-footer-height;
+  padding-bottom: 0.5rem;
+
+  .sidebar-collapsed-icon {
+    @include gl-display-none;
+  }
+
+  .show.dropdown .dropdown-menu {
+    @include gl-w-full;
+  }
+}
+
+.board-card-skeleton {
+  height: 110px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+  .board-card-skeleton-inner {
+    width: 340px;
+    height: 100px;
+  }
+}

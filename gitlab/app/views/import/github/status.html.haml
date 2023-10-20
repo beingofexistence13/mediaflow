@@ -1,0 +1,14 @@
+- title = has_ci_cd_only_params? ? _('Connect repositories from GitHub') : _('GitHub import')
+- page_title title
+%h1.page-title.gl-font-size-h-display.mb-0.gl-display-flex
+  .gl-display-flex.gl-align-items-center.gl-justify-content-center
+    = sprite_icon('github', css_class: 'gl-mr-2')
+  = _('Import repositories from GitHub')
+
+= render 'import/githubish_status',
+  provider: 'github', paginatable: true,
+  default_namespace: @namespace,
+  cancel_path: cancel_import_github_path,
+  details_path: details_import_github_path,
+  status_import_github_group_path: status_import_github_group_path(format: :json),
+  optional_stages: Gitlab::GithubImport::Settings.stages_array

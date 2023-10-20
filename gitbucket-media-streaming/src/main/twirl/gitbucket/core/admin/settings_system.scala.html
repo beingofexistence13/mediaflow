@@ -1,0 +1,336 @@
+@(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.util.DatabaseConfig
+<!--====================================================================-->
+<!-- System properties -->
+<!--====================================================================-->
+<table class="table table-bordered">
+  <tr>
+    <th>Property</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td>GITBUCKET_VERSION</td>
+    <td>@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</td>
+  </tr>
+  <tr>
+    <td>GITBUCKET_HOME</td>
+    <td>@gitbucket.core.util.Directory.GitBucketHome</td>
+  </tr>
+  <tr>
+    <td>DATABASE_URL</td>
+    @if(DatabaseConfig.url.startsWith("jdbc:h2:")) {
+    <td class="danger">
+      <p>@gitbucket.core.util.DatabaseConfig.url</p>
+      <p>
+        GitBucket is using the embedded H2 database.
+        It's recommended that you <a href="https://github.com/gitbucket/gitbucket/wiki/External-database-configuration">configure GitBucket to use an external database</a> if you're running GitBucket in a production environment.
+      </p>
+    </td>
+    }else{
+      <td>@gitbucket.core.util.DatabaseConfig.url</td>
+    }
+  </tr>
+</table>
+<!--====================================================================-->
+<!-- Base URL -->
+<!--====================================================================-->
+<hr>
+<label for="baseUrl"><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
+<fieldset>
+    <div class="controls">
+      <input type="text" name="baseUrl" id="baseUrl" class="form-control" value="@context.settings.baseUrl"/>
+      <span id="error-baseUrl" class="error"></span>
+    </div>
+</fieldset>
+<p class="muted">
+  The base URL is used for redirects, notification emails, git repository URL boxes, and more.
+  If the base URL is empty, GitBucket generates the URL from the request information.
+  You can use this property to adjust to URL differences between a reverse proxy and GitBucket.
+</p>
+<!--====================================================================-->
+<!-- Information -->
+<!--====================================================================-->
+<hr>
+<label for="information"><span class="strong">Site notification</span> (Supports HTML)</label>
+<fieldset>
+  <textarea id="information" name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
+</fieldset>
+<!--====================================================================-->
+<!-- Default branch -->
+<!--====================================================================-->
+<hr>
+<label for="defaultBranch"><span class="strong">Default branch</span></label>
+<fieldset>
+  <input type="text" name="defaultBranch" id="defaultBranch" class="form-control" value="@context.settings.defaultBranch"/>
+  <span id="error-defaultBranch" class="error"></span>
+</fieldset>
+<!--====================================================================-->
+<!-- AdminLTE SkinName -->
+<!--====================================================================-->
+<hr>
+<label class="strong">
+  AdminLTE skin name
+</label>
+<div class="form-group">
+  <label class="control-label col-md-2" for="skinName">Skin name</label>
+  <div class="col-md-10">
+    <select id="skinName" name="skinName" class="form-control">
+      <optgroup label="Dark">
+        @Seq(
+        ("skin-black", "Black"),
+        ("skin-blue", "Blue"),
+        ("skin-green", "Green"),
+        ("skin-purple", "Purple"),
+        ("skin-red", "Red"),
+        ("skin-yellow", "Yellow"),
+        ).map{ skin =>
+          <option value="@skin._1"@if(skin._1 == context.settings.skinName){ selected=""}>@skin._2</option>
+        }
+      </optgroup>
+      <optgroup label="Light">
+        @Seq(
+        ("skin-black-light", "Light black"),
+        ("skin-blue-light", "Light blue"),
+        ("skin-green-light", "Light green"),
+        ("skin-purple-light", "Light purple"),
+        ("skin-red-light", "Light red"),
+        ("skin-yellow-light", "Light yellow"),
+        ).map{ skin =>
+          <option value="@skin._1"@if(skin._1 == context.settings.skinName){ selected=""} >@skin._2</option>
+        }
+      </optgroup>
+    </select>
+  </div>
+</div>
+<!--====================================================================-->
+<!-- User-defined CSS -->
+<!--====================================================================-->
+<hr>
+<label for="userDefinedCss"><span class="strong">User-defined CSS</span></label>
+<fieldset>
+  <textarea id="userDefinedCss" name="userDefinedCss" class="form-control" style="height: 100px;">@context.settings.userDefinedCss</textarea>
+</fieldset>
+<!--====================================================================-->
+<!-- Account registration -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Account registration</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowAccountRegistration" value="true"@if(context.settings.basicBehavior.allowAccountRegistration){ checked}>
+    <span class="strong">Allow</span> <span class="normal">- Users can create accounts by themselves.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowAccountRegistration" value="false"@if(!context.settings.basicBehavior.allowAccountRegistration){ checked}>
+    <span class="strong">Deny</span> <span class="normal">- Only administrators can create accounts.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- Reset password -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Reset password</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowResetPassword" value="true"@if(context.settings.basicBehavior.allowResetPassword){ checked}>
+    <span class="strong">Allow</span> <span class="normal">- Allow users to reset password. (SMTP setting is required)</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowResetPassword" value="false"@if(!context.settings.basicBehavior.allowResetPassword){ checked}>
+    <span class="strong">Deny</span> <span class="normal">- Doesn't allow users to reset password.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- Repository operations -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Repository operation</label>
+<fieldset>
+  <div class="form-group">
+    <label class="control-label col-md-2">Create</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.create" value="true"@if(context.settings.basicBehavior.repositoryOperation.create){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can create repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.create" value="false"@if(!context.settings.basicBehavior.repositoryOperation.create){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can create repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Delete</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.delete" value="true"@if(context.settings.basicBehavior.repositoryOperation.delete){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can delete repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.delete" value="false"@if(!context.settings.basicBehavior.repositoryOperation.delete){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can delete repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Rename</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.rename" value="true"@if(context.settings.basicBehavior.repositoryOperation.rename){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can rename repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.rename" value="false"@if(!context.settings.basicBehavior.repositoryOperation.rename){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can rename repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Transfer</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.transfer" value="true"@if(context.settings.basicBehavior.repositoryOperation.transfer){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can transfer repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.transfer" value="false"@if(!context.settings.basicBehavior.repositoryOperation.transfer){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can transfer repository.</span>
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2">Fork</label>
+    <div class="col-md-10">
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.fork" value="true"@if(context.settings.basicBehavior.repositoryOperation.fork){ checked}>
+        <span class="strong">All users</span> <span class="normal">- All users can fork repository.</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="basicBehavior.repositoryOperation.fork" value="false"@if(!context.settings.basicBehavior.repositoryOperation.fork){ checked}>
+        <span class="strong">Admin only</span> <span class="normal">- Only administrators can fork repository.</span>
+      </label>
+    </div>
+  </div>
+</fieldset>
+<hr>
+<label class="strong">Default visibility when creating a new repository</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.isCreateRepoOptionPublic" value="true"@if(context.settings.basicBehavior.isCreateRepoOptionPublic){ checked}>
+    <span class="strong">Public</span> <span class="normal">- All users and guests can read the repository.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.isCreateRepoOptionPublic" value="false"@if(!context.settings.basicBehavior.isCreateRepoOptionPublic){ checked}>
+    <span class="strong">Private</span> <span class="normal">- Only collaborators can read the repository.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- Anonymous access -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Anonymous access</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowAnonymousAccess" value="true"@if(context.settings.basicBehavior.allowAnonymousAccess){ checked}>
+    <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories and user/group profiles.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.allowAnonymousAccess" value="false"@if(!context.settings.basicBehavior.allowAnonymousAccess){ checked}>
+    <span class="strong">Deny</span> <span class="normal">- Users must authenticate before viewing any information.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- Show mail address -->
+<!--====================================================================-->
+<hr>
+<label class="strong">Show mail address</label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="showMailAddress" value="true"@if(context.settings.showMailAddress){ checked}>
+    <span class="strong">Show</span> <span class="normal">- Anyone can view mail address by user's profile page.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="showMailAddress" value="false"@if(!context.settings.showMailAddress){ checked}>
+    <span class="strong">Hide</span> <span class="normal">- Hide mail address in user's profile page.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- File upload -->
+<!--====================================================================-->
+<hr>
+<label class="strong">File upload</label>
+<fieldset>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="uploadMaxFileSize">Max size</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadMaxFileSize" name="upload.maxFileSize" class="form-control input-mini" value="@context.settings.upload.maxFileSize"/>
+      <span id="error-upload_maxFileSize" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="uploadTimeout">Timeout</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadTimeout" name="upload.timeout" class="form-control input-mini" value="@context.settings.upload.timeout"/>
+      <span id="error-upload_timeout" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="uploadLargeMaxFileSize">Max size for large files</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadLargeMaxFileSize" name="upload.largeMaxFileSize" class="form-control input-mini" value="@context.settings.upload.largeMaxFileSize"/>
+      <span id="error-upload_largeMaxFileSize" class="error"></span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="uploadLargeTimeout">Timeout for large files</label>
+    <div class="col-md-10">
+      <input type="text" id="uploadLargeTimeout" name="upload.largeTimeout" class="form-control input-mini" value="@context.settings.upload.largeTimeout"/>
+      <span id="error-upload_largeTimeout" class="error"></span>
+    </div>
+  </div>
+</fieldset>
+<!--====================================================================-->
+<!-- Sidebar -->
+<!--====================================================================-->
+<hr>
+<label><span class="strong">Show repositories in sidebar</span></label>
+<fieldset>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.limitVisibleRepositories" value="false"@if(!context.settings.basicBehavior.limitVisibleRepositories){ checked}>
+    <span class="strong">All</span> <span class="normal">- Show all visible repositories in sidebar.</span>
+  </label>
+  <label class="radio">
+    <input type="radio" name="basicBehavior.limitVisibleRepositories" value="true"@if(context.settings.basicBehavior.limitVisibleRepositories){ checked}>
+    <span class="strong">Limited</span> <span class="normal">- Show only owned repositories in sidebar.</span>
+  </label>
+</fieldset>
+<!--====================================================================-->
+<!-- Repository viewer -->
+<!--====================================================================-->
+<hr>
+<label><span class="strong">Repository viewer</span></label>
+<fieldset>
+  <div class="form-group">
+    <label class="control-label col-md-2" for="repositoryViewerMaxFiles">Max files in directory</label>
+    <div class="col-md-10">
+      <input type="text" name="repositoryViewer.maxFiles" id="repositoryViewerMaxFiles" class="form-control" value="@context.settings.repositoryViewer.maxFiles"/>
+      <span id="error-repositoryViewerMaxFiles" class="error"></span>
+      <p class="muted">
+        If the number of files in the directory is bigger than this number, GitBucket doesn't show detailed commit info on the repository viewer
+        because it can make the entire system quite heavy. 0 or negative number means no limitation.
+      </p>
+    </div>
+  </div>
+</fieldset>
+
+<script>
+$(function(){
+  $('#skinName').change(function(evt) {
+    var that = $(evt.target);
+    var themeCss = $('link[rel="stylesheet"][href*="skin-"]');
+    var oldVal = new RegExp('(skin-.*?).min.css').exec(themeCss.attr('href'))[1];
+    themeCss.attr('href', themeCss.attr('href').replace(oldVal, that.val()));
+    $(document.body).removeClass(oldVal).addClass(that.val());
+  });
+});
+</script>

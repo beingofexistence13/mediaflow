@@ -1,0 +1,84 @@
+---
+stage: none
+group: none
+info: "See the Technical Writers assigned to Development Guidelines: https://about.gitlab.com/handbook/product/ux/technical-writing/#assignments-to-development-guidelines"
+toc: false
+---
+
+# Deprecations and removals by version
+
+The following GitLab features are deprecated and no longer recommended for use.
+Each deprecated feature will be removed in a future release.
+Some features cause breaking changes when they are removed.
+
+On GitLab.com, deprecated features can be removed at any time during the month leading up to the release.
+
+**{rss}** **To be notified of upcoming breaking changes**,
+add this URL to your RSS feed reader: `https://about.gitlab.com/breaking-changes.xml`
+
+You can also view [REST API](https://docs.gitlab.com/ee/api/rest/deprecations.html)
+and [GraphQL](https://docs.gitlab.com/ee/api/graphql/removed_items.html) deprecations/removals.
+
+<!-- vale off -->
+
+<!--
+DO NOT EDIT THIS PAGE DIRECTLY
+
+This page is automatically generated from the template located at
+`data/deprecations/templates/_deprecation_template.md.erb`, using
+the YAML files in `/data/deprecations` by the rake task
+located at `lib/tasks/gitlab/docs/compile_deprecations.rake`,
+
+For deprecation authors (usually Product Managers and Engineering Managers):
+
+- To add a deprecation, use the example.yml file in `/data/deprecations/templates` as a template.
+- For more information about authoring deprecations, check the the deprecation item guidance:
+  https://about.gitlab.com/handbook/marketing/blog/release-posts/#update-the-deprecations-and-removals-docs
+
+For deprecation reviewers (Technical Writers only):
+
+- To update the deprecation doc, run: `bin/rake gitlab:docs:compile_deprecations`
+- To verify the deprecations doc is up to date, run: `bin/rake gitlab:docs:check_deprecations`
+- For more information about updating the deprecation doc, see the deprecation doc update guidance:
+  https://about.gitlab.com/handbook/marketing/blog/release-posts/#update-the-deprecations-and-removals-docs
+-->
+
+{::options parse_block_html="true" /}
+
+<% if milestones.any? -%><div class="js-deprecation-filters"></div><%- end -%>
+<%- milestones.each do |milestone| %>
+<div class="milestone-wrapper" data-milestone="<%= milestone %>">
+
+## GitLab <%= milestone %>
+  <%- entries.select{|d| d["removal_milestone"] == milestone}.each do |deprecation| %>
+<div class="deprecation <% if deprecation["breaking_change"] -%>breaking-change<% end %>" data-milestone="<%= milestone %>">
+
+### <%= deprecation["title"] %>
+
+<div class="deprecation-notes">
+- Announced in GitLab <span class="milestone"><%= deprecation["announcement_milestone"]%></span>
+<% if deprecation["end_of_support_milestone"] -%>
+- End of Support in GitLab <span class="milestone"><%= deprecation["end_of_support_milestone"]%></span>
+<% end -%>
+<% if deprecation["removal_milestone"] -%>
+- Removal in GitLab <span class="milestone"><%= deprecation["removal_milestone"]%></span><% if deprecation["breaking_change"] -%> ([breaking change](https://docs.gitlab.com/ee/update/terminology.html#breaking-change))<% end %>
+<% end -%>
+<% if deprecation["issue_url"] -%>
+- To discuss this change or learn more, see the [deprecation issue](<%= deprecation["issue_url"]%>).
+<%- end -%>
+</div>
+
+<%= deprecation["body"] -%>
+
+</div>
+  <%- end -%>
+</div>
+<%- end -%>
+
+DISCLAIMER:
+This page contains information related to upcoming products, features, and functionality.
+It is important to note that the information presented is for informational purposes only.
+Please do not rely on this information for purchasing or planning purposes.
+As with all projects, the items mentioned on this page are subject to change or delay.
+The development, release, and timing of any products, features, or functionality remain at the
+sole discretion of GitLab Inc.

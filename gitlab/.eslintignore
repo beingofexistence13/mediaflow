@@ -1,0 +1,13 @@
+/app/assets/javascripts/locale/**/app.js
+/builds/
+/coverage/
+/coverage-frontend/
+/node_modules/
+/public/
+/tmp/
+/vendor/
+/sitespeed-result/
+/fixtures/**/*.graphql
+# Storybook build artifacts
+/storybook/public
+spec/fixtures/**/*.graphql

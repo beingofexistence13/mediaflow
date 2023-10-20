@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snippet Visibility Edit component rendering matches the snapshot 1`] = `
+<div
+  class="form-group"
+>
+  <label>
+    Visibility level
+    <gl-link-stub
+      href="/foo/bar"
+      target="_blank"
+    >
+      <gl-icon-stub
+        name="question-o"
+        size="12"
+      />
+    </gl-link-stub>
+  </label>
+  <gl-form-group-stub
+    class="gl-mb-0"
+    id="reference-0"
+    labeldescription=""
+    optionaltext="(optional)"
+  >
+    <gl-form-radio-group-stub
+      checked="private"
+      disabledfield="disabled"
+      htmlfield="html"
+      options=""
+      stacked=""
+      textfield="text"
+      valuefield="value"
+    >
+      <gl-form-radio-stub
+        class="mb-3"
+        value="private"
+      >
+        <div
+          class="align-items-center d-flex"
+        >
+          <gl-icon-stub
+            name="lock"
+            size="16"
+          />
+          <span
+            class="font-weight-bold js-visibility-option ml-1"
+            data-qa-visibility="Private"
+            data-testid="visibility-content"
+          >
+            Private
+          </span>
+        </div>
+      </gl-form-radio-stub>
+      <gl-form-radio-stub
+        class="mb-3"
+        value="internal"
+      >
+        <div
+          class="align-items-center d-flex"
+        >
+          <gl-icon-stub
+            name="shield"
+            size="16"
+          />
+          <span
+            class="font-weight-bold js-visibility-option ml-1"
+            data-qa-visibility="Internal"
+            data-testid="visibility-content"
+          >
+            Internal
+          </span>
+        </div>
+      </gl-form-radio-stub>
+      <gl-form-radio-stub
+        class="mb-3"
+        value="public"
+      >
+        <div
+          class="align-items-center d-flex"
+        >
+          <gl-icon-stub
+            name="earth"
+            size="16"
+          />
+          <span
+            class="font-weight-bold js-visibility-option ml-1"
+            data-qa-visibility="Public"
+            data-testid="visibility-content"
+          >
+            Public
+          </span>
+        </div>
+      </gl-form-radio-stub>
+    </gl-form-radio-group-stub>
+  </gl-form-group-stub>
+  <div
+    class="text-muted"
+    data-testid="restricted-levels-info"
+  />
+</div>
+`;

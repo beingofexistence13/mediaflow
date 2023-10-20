@@ -1,0 +1,10 @@
+---
+table_name: project_error_tracking_settings
+classes:
+- ErrorTracking::ProjectErrorTrackingSetting
+feature_categories:
+- error_tracking
+description: Project settings related to Error Tracking
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/24047
+milestone: '11.7'
+gitlab_schema: gitlab_main

@@ -1,0 +1,13 @@
+- add_to_breadcrumbs _("Pages"), project_pages_path(@project)
+- breadcrumb_title domain_presenter.domain
+- page_title domain_presenter.domain
+
+%h1.page-title.gl-font-size-h-display
+  = _('Pages Domain')
+= render 'projects/pages_domains/helper_text'
+%div
+  = gitlab_ui_form_for [@project, domain_presenter], html: { class: 'fieldset-form' } do |f|
+    = render 'form', { f: f }
+    .form-actions.gl-display-flex
+      = f.submit _('Save Changes'), class: 'gl-mr-3', pajamas_button: true
+      = link_button_to _('Cancel'), project_pages_path(@project)

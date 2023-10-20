@@ -1,0 +1,9 @@
+- breadcrumb_title _("Topics")
+- page_title    _("Explore topics")
+- header_title  _("Topics"), topics_explore_projects_path
+
+= render_dashboard_ultimate_trial(current_user)
+
+= render 'explore/topics/head'
+
+= render partial: 'shared/topics/list'

@@ -1,0 +1,198 @@
+---
+itself: # project
+  unexposed_attributes:
+    - bfg_object_map
+    - delete_error
+    - detected_repository_languages
+    - disable_overriding_approvers_per_merge_request
+    - external_authorization_classification_label
+    - external_webhook_token
+    - has_external_issue_tracker
+    - has_external_wiki
+    - hidden
+    - import_source
+    - jobs_cache_index
+    - last_repository_check_at
+    - last_repository_check_failed
+    - last_repository_updated_at
+    - marked_for_deletion_at
+    - marked_for_deletion_by_user_id
+    - max_artifacts_size
+    - max_pages_size
+    - merge_requests_author_approval
+    - merge_requests_disable_committers_approval
+    - merge_requests_rebase_enabled
+    - mirror_last_successful_update_at
+    - mirror_last_update_at
+    - mirror_overwrites_diverged_branches
+    - mirror_trigger_builds
+    - mirror_user_id
+    - mirror_branch_regex
+    - only_mirror_protected_branches
+    - pages_https_only
+    - pending_delete
+    - pool_repository_id
+    - project_namespace_id
+    - pull_mirror_available_overridden
+    - pull_mirror_branch_prefix
+    - remote_mirror_available_overridden
+    - repository_read_only
+    - repository_size_limit
+    - require_password_to_approve
+    - reset_approvals_on_push
+    - runners_token_encrypted
+    - storage_version
+    - topic_list
+    - verification_checksum
+    - organization_id
+  remapped_attributes:
+    avatar: avatar_url
+    build_allow_git_fetch: build_git_strategy
+    merge_requests_ff_only_enabled: merge_method
+    namespace_id: namespace
+    public_builds: public_jobs
+    visibility_level: visibility
+  computed_attributes:
+    - _links
+    - can_create_merge_request_in
+    - compliance_frameworks
+    - container_expiration_policy
+    - container_registry_enabled
+    - container_registry_image_prefix
+    - default_branch
+    - empty_repo
+    - emails_disabled
+    - forks_count
+    - http_url_to_repo
+    - import_status
+    - import_url
+    - name_with_namespace
+    - open_issues_count
+    - owner
+    - path_with_namespace
+    - permissions
+    - readme_url
+    - shared_with_groups
+    - ssh_url_to_repo
+    - tag_list
+    - topics
+    - web_url
+    - description_html
+
+build_auto_devops: # auto_devops
+  unexposed_attributes:
+    - id
+    - project_id
+    - created_at
+    - updated_at
+  remapped_attributes:
+    enabled: auto_devops_enabled
+    deploy_strategy: auto_devops_deploy_strategy
+
+ci_cd_settings:
+  unexposed_attributes:
+    - id
+    - project_id
+    - merge_trains_enabled
+    - merge_trains_skip_train_allowed
+    - merge_pipelines_enabled
+    - auto_rollback_enabled
+    - inbound_job_token_scope_enabled
+  remapped_attributes:
+    default_git_depth: ci_default_git_depth
+    forward_deployment_enabled: ci_forward_deployment_enabled
+    forward_deployment_rollback_allowed: ci_forward_deployment_rollback_allowed
+    job_token_scope_enabled: ci_job_token_scope_enabled
+    separated_caches: ci_separated_caches
+    allow_fork_pipelines_to_run_in_parent_project: ci_allow_fork_pipelines_to_run_in_parent_project
+
+build_import_state: # import_state
+  unexposed_attributes:
+    - id
+    - project_id
+    - retry_count
+    - last_update_started_at
+    - last_update_scheduled_at
+    - next_execution_timestamp
+    - jid
+    - last_update_at
+    - last_successful_update_at
+    - correlation_id_value
+    - checksums
+  remapped_attributes:
+    status: import_status
+    last_error: import_error
+
+project_feature:
+  unexposed_attributes:
+    - id
+    - created_at
+    - metrics_dashboard_access_level
+    - package_registry_access_level
+    - project_id
+    - updated_at
+    - operations_access_level
+  computed_attributes:
+    - issues_enabled
+    - jobs_enabled
+    - merge_requests_enabled
+    - requirements_enabled
+    - security_and_compliance_enabled
+    - snippets_enabled
+    - wiki_enabled
+
+project_setting:
+  unexposed_attributes:
+    - created_at
+    - has_confluence
+    - has_shimo
+    - has_vulnerabilities
+    - legacy_open_source_license_available
+    - prevent_merge_without_jira_issue
+    - only_allow_merge_if_all_status_checks_passed
+    - warn_about_potentially_unwanted_characters
+    - previous_default_branch
+    - project_id
+    - push_rule_id
+    - show_default_award_emojis
+    - show_diff_preview_in_email
+    - updated_at
+    - cve_id_request_enabled
+    - mr_default_target_self
+    - target_platforms
+    - selective_code_owner_removals
+    - show_diff_preview_in_email
+    - suggested_reviewers_enabled
+    - mirror_branch_regex
+    - allow_pipeline_trigger_approve_deployment
+    - pages_unique_domain_enabled
+    - pages_unique_domain
+    - pages_multiple_versions_enabled
+    - runner_registration_enabled
+    - product_analytics_instrumentation_key
+    - product_analytics_data_collector_host
+    - cube_api_base_url
+    - cube_api_key
+    - encrypted_cube_api_key
+    - encrypted_cube_api_key_iv
+    - encrypted_product_analytics_configurator_connection_string
+    - encrypted_product_analytics_configurator_connection_string_iv
+    - product_analytics_configurator_connection_string
+
+build_service_desk_setting: # service_desk_setting
+  unexposed_attributes:
+    - project_id
+    - issue_template_key
+    - file_template_project_id
+    - outgoing_name
+    - custom_email_enabled
+    - custom_email
+    - custom_email_smtp_address
+    - custom_email_smtp_port
+    - custom_email_smtp_username
+    - encrypted_custom_email_smtp_password
+    - encrypted_custom_email_smtp_password_iv
+    - custom_email_smtp_password
+    - add_external_participants_from_cc
+  remapped_attributes:
+    project_key: service_desk_address

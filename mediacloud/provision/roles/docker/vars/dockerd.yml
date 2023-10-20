@@ -1,0 +1,42 @@
+#
+# Docker and containerd.io versions to install
+#
+# Older Docker versions have caching discrepancies, so we try to run the same version everywhere.
+#
+# Get a list of available versions by running:
+#
+#     apt-cache madison docker-ce
+#     apt-cache madison containerd.io
+#
+docker_version: "20.10.11"
+containerd_io_version: "1.4.12"
+
+# Docker Python module, needed by Ansible:
+#
+# https://pypi.org/project/docker/#history
+#
+docker_python_module_version: "5.0.0"
+
+# Docker Compose:
+#
+# https://pypi.org/project/docker-compose/#history
+#
+docker_compose_version: "1.29.2"
+
+#
+# Docker daemon configuration
+#
+# Dictionary gets converted to JSON and stored to /etc/docker/daemon.json.
+#
+docker_daemon_config:
+
+  # Increase default shutdown timeout:
+  shutdown-timeout: 60
+
+  # Log to JSON files that can be later ingested by elk-filebeat
+  log-driver: "json-file"
+
+  # All log-opts values have to be strings!
+  log-opts:
+    max-size: "100m"
+    max-file: "4"

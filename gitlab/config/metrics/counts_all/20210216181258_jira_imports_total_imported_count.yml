@@ -1,0 +1,20 @@
+---
+data_category: optional
+key_path: counts.jira_imports_total_imported_count
+description: Count of Jira imports completed
+product_section: dev
+product_stage: manage
+product_group: integrations
+value_type: number
+status: active
+time_frame: all
+data_source: database
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"

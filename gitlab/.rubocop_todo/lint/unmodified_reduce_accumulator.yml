@@ -1,0 +1,4 @@
+---
+Lint/UnmodifiedReduceAccumulator:
+  Exclude:
+    - 'qa/qa/specs/runner.rb'

@@ -1,0 +1,21 @@
+- name: Restart Journald
+  # "killall -USR1 systemd-journald" would preserve logs written to far to
+  # transient storage, but it doesn't reload certain configuration changes
+  systemd:
+    name: systemd-journald
+    state: restarted
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Restart Docker
+  service:
+    name: docker
+    state: restarted
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - dockerd

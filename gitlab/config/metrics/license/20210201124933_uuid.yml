@@ -1,0 +1,22 @@
+---
+key_path: uuid
+description: GitLab instance unique identifier
+product_section: analytics
+product_stage: analytics
+product_group: analytics_instrumentation
+value_type: string
+status: active
+milestone: "9.1"
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/1521
+time_frame: none
+data_source: database
+data_category: standard
+instrumentation_class: UuidMetric
+distribution:
+- ee
+- ce
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []

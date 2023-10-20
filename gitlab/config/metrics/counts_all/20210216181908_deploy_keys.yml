@@ -1,0 +1,20 @@
+---
+data_category: optional
+key_path: counts.deploy_keys
+description: Count of deploy keys
+product_section: ops
+product_stage: deploy
+product_group: environments
+value_type: number
+status: active
+time_frame: all
+data_source: database
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"

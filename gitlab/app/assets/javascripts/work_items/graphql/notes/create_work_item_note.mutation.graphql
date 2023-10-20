@@ -1,0 +1,18 @@
+#import "ee_else_ce/work_items/graphql/notes/work_item_note.fragment.graphql"
+
+mutation createWorkItemNote($input: CreateNoteInput!) {
+  createNote(input: $input) {
+    note {
+      id
+      discussion {
+        id
+        notes {
+          nodes {
+            ...WorkItemNote
+          }
+        }
+      }
+    }
+    errors
+  }
+}

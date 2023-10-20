@@ -1,0 +1,156 @@
+version: "3.7"
+
+services:
+
+    topics-snapshot:
+        image: gcr.io/mcback/topics-snapshot:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+            MC_PUBLIC_STORE_TYPE: "postgresql"
+            MC_PUBLIC_STORE_SALT: "foo"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/topics-snapshot/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../topics-base/src/
+              target: /opt/mediacloud/src/topics-base/
+            - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+            - rabbitmq-server
+            - import-solr-data-for-testing
+            - topics-map
+
+    import-solr-data-for-testing:
+        image: gcr.io/mcback/import-solr-data-for-testing:latest
+        init: true
+        environment:
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../import-solr-data-for-testing/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../import-solr-data/src/
+              target: /opt/mediacloud/src/import-solr-data/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+
+    topics-map:
+        image: gcr.io/mcback/topics-map:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_PUBLIC_STORE_TYPE: "postgresql"
+            MC_PUBLIC_STORE_SALT: "foo"
+        volumes:
+            - type: bind
+              source: ./../topics-map/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../topics-map/src/
+              target: /opt/mediacloud/src/topics-map/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+
+    postgresql-pgbouncer:
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/pgmigrate/
+              target: /opt/postgresql-server/pgmigrate/
+            - type: bind
+              source: ./../postgresql-server/etc/postgresql/14/extra/
+              target: /etc/postgresql/14/extra/
+            - type: bind
+              source: ./../postgresql-base/etc/postgresql/14/main/
+              target: /etc/postgresql/14/main/
+
+    solr-shard-01:
+        image: gcr.io/mcback/solr-shard:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - type: bind
+              source: ./../solr-base/src/solr/
+              target: /usr/src/solr/
+            - type: bind
+              source: ./../solr-shard/bin/solr-shard.sh
+              target: /solr-shard.sh
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: gcr.io/mcback/solr-zookeeper:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
+
+    rabbitmq-server:
+        image: gcr.io/mcback/rabbitmq-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - type: bind
+              source: ./../rabbitmq-server/conf/
+              target: /etc/rabbitmq/

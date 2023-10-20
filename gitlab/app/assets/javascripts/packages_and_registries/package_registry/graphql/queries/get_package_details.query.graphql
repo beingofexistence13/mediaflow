@@ -1,0 +1,82 @@
+#import "~/packages_and_registries/package_registry/graphql/fragments/package_group_settings.fragment.graphql"
+
+query getPackageDetails($id: PackagesPackageID!) {
+  package(id: $id) {
+    id
+    name
+    packageType
+    version
+    lastDownloadedAt
+    createdAt
+    updatedAt
+    status
+    canDestroy
+    publicPackage
+    npmUrl
+    mavenUrl
+    conanUrl
+    nugetUrl
+    pypiUrl
+    pypiSetupUrl
+    composerUrl
+    composerConfigRepositoryUrl
+    project {
+      id
+      path
+      name
+      fullPath
+      group {
+        ...GroupPackageSettings
+      }
+    }
+    tags(first: 10) {
+      nodes {
+        id
+        name
+      }
+    }
+    pipelines(first: 1) {
+      nodes {
+        ref
+        id
+        project {
+          id
+          name
+          webUrl
+        }
+      }
+    }
+    versions {
+      count
+    }
+    dependencyLinks {
+      nodes {
+        id
+        dependency {
+          id
+          name
+          versionPattern
+        }
+        dependencyType
+        metadata {
+          ... on NugetDependencyLinkMetadata {
+            id
+            targetFramework
+          }
+        }
+      }
+    }
+    metadata {
+      ... on MavenMetadata {
+        id
+        appName
+        appGroup
+        appVersion
+      }
+      ... on NugetMetadata {
+        id
+        iconUrl
+      }
+    }
+  }
+}

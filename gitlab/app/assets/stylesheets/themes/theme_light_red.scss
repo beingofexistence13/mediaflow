@@ -1,0 +1,22 @@
+@import './theme_helper';
+
+body {
+  &.ui-light-red {
+    @include gitlab-theme(
+      $theme-light-red-200,
+      $theme-light-red-500,
+      $theme-light-red-500,
+      $theme-light-red-700,
+      $white
+    );
+
+    .page-with-super-sidebar {
+      @include gitlab-theme-super-sidebar(
+        $theme-light-red-50,
+        $theme-light-red-200,
+        $theme-light-red-700,
+        $theme-light-red-900,
+      );
+    }
+  }
+}

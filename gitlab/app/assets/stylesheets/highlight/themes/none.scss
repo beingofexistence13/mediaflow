@@ -1,0 +1,275 @@
+/*
+* None Syntax Colors
+*/
+
+@import '../common';
+
+@mixin match-line {
+  color: $black-transparent;
+  background-color: $white-normal;
+}
+
+:root {
+  --default-diff-color-deletion: #b4b4b4;
+  --default-diff-color-addition: #b4b4b4;
+}
+
+.code.none {
+  // Highlight.js theme overrides (https://gitlab.com/gitlab-org/gitlab/-/issues/365167)
+  // We should be able to remove the overrides once the upstream issue is fixed (https://github.com/sourcegraph/sourcegraph/issues/23251)
+  &.blob-viewer {
+    [class^="hljs-"] {
+      color: $gl-text-color;
+    }
+  }
+
+  // Line numbers
+  .file-line-blame {
+    @include line-link($black, 'git');
+  }
+
+  .line-links {
+    @include line-hover-bg;
+  }
+
+  .line-numbers,
+  .diff-line-num,
+  .code-search-line {
+    background-color: $gray-light;
+  }
+
+  .diff-line-num,
+  .diff-line-num a {
+    color: $black-transparent;
+  }
+
+  // Code itself
+  pre.code,
+  .diff-line-num {
+    border-color: $white-normal;
+  }
+
+  &,
+  pre.code,
+  .line_holder .line_content:not(.hll) {
+    background-color: $white;
+    color: $gl-text-color;
+  }
+
+  .diff-line-expand-button {
+    @include diff-expansion($gray-100, $gray-700, $gray-200, $gray-800);
+  }
+
+
+  // Diff line
+  $none-expanded-border: #e0e0e0;
+  $none-expanded-bg: #e0e0e0;
+
+  .line_holder {
+    &.match .line_content,
+    .new-nonewline.line_content,
+    .old-nonewline.line_content {
+      @include match-line;
+    }
+
+    &.diff-grid-row {
+      --diff-expansion-background-color: #{$gray-100};
+    }
+
+    .line-coverage {
+      @include line-coverage-border-color($green-500, $orange-500);
+    }
+
+    .line-coverage:not(.hll),
+    .line-inline-findings:not(.hll) {
+      &.old,
+      &.new,
+      &.new-nomappinginraw,
+      &.old-nomappinginraw {
+        background-color: $white-normal;
+      }
+    }
+
+    &:not(.match) .diff-grid-left:hover,
+    &:not(.match) .diff-grid-right:hover,
+    &:not(.match) &.code-search-line:hover {
+      .diff-line-num:not(.empty-cell) {
+        @include line-number-hover;
+      }
+    }
+
+    .diff-line-num {
+      &.old {
+        a {
+          color: scale-color($line-number-old, $red: -30%, $green: -30%, $blue: -30%);
+        }
+      }
+
+      &.new {
+        a {
+          color: scale-color($line-number-new, $red: -30%, $green: -30%, $blue: -30%);
+        }
+      }
+
+      &.is-over,
+      &.hll:not(.empty-cell).is-over {
+        @include line-number-hover;
+      }
+    }
+
+    &:not(.diff-expanded) + .diff-expanded,
+    &.diff-expanded + .line_holder:not(.diff-expanded) {
+      > .diff-line-num,
+      > .line-coverage,
+      > .line_content {
+        border-top: 1px solid $none-expanded-border;
+      }
+    }
+
+    &.diff-expanded {
+      > .diff-line-num,
+      > .line-coverage,
+      > .line_content {
+        background: $none-expanded-bg;
+        border-color: $none-expanded-bg;
+      }
+    }
+
+    .line_content {
+      &.old, &.old-nomappinginraw {
+        background-color: $white-normal;
+
+        &::before {
+          color: $gl-text-color;
+        }
+
+        span.idiff {
+          background-color: $white-normal;
+          text-decoration: underline;
+        }
+      }
+
+      &.new:not(.hll), &.new-nomappinginraw:not(.hll) {
+        background-color: $white-normal;
+
+        &::before {
+          color: $gl-text-color;
+        }
+
+        span.idiff {
+          background-color: $white-normal;
+          text-decoration: underline;
+        }
+      }
+
+      &.match {
+        @include match-line;
+      }
+    }
+  }
+
+  // Search result highlight
+  span.highlight_word {
+    background-color: $white-normal;
+  }
+
+  // Links to URLs, emails, or dependencies
+  .line a {
+    color: $gl-text-color;
+    text-decoration: underline;
+  }
+
+  .hll {
+    --highlight-border-color: #{$orange-200};
+    background-color: $orange-50;
+  }
+
+  .gd {
+    color: $gl-text-color;
+    background-color: $white;
+
+    .x {
+      color: $gl-text-color;
+      background-color: $white;
+    }
+  }
+
+  .gi {
+    color: $gl-text-color;
+    background-color: $white;
+
+    .x {
+      color: $gl-text-color;
+      background-color: $white;
+    }
+  }
+
+  .c { color: $gl-text-color; } /* Comment */
+  .err { color: $gl-text-color; } /* Error */
+  .g { color: $gl-text-color; } /* Generic */
+  .k { color: $gl-text-color; } /* Keyword */
+  .l { color: $gl-text-color; } /* Literal */
+  .n { color: $gl-text-color; } /* Name */
+  .o { color: $gl-text-color; } /* Operator */
+  .x { color: $gl-text-color; } /* Other */
+  .p { color: $gl-text-color; } /* Punctuation */
+  .cm { color: $gl-text-color; } /* Comment.Multiline */
+  .cp { color: $gl-text-color; } /* Comment.Preproc */
+  .c1 { color: $gl-text-color; } /* Comment.Single */
+  .cs { color: $gl-text-color; } /* Comment.Special */
+  .cd { color: $gl-text-color; } /* Comment.Doc */
+  .ge { color: $gl-text-color; } /* Generic.Emph */
+  .gr { color: $gl-text-color; } /* Generic.Error */
+  .gh { color: $gl-text-color; } /* Generic.Heading */
+  .go { color: $gl-text-color; } /* Generic.Output */
+  .gp { color: $gl-text-color; } /* Generic.Prompt */
+  .gs { color: $gl-text-color; } /* Generic.Strong */
+  .gu { color: $gl-text-color; } /* Generic.Subheading */
+  .gt { color: $gl-text-color; } /* Generic.Traceback */
+  .kc { color: $gl-text-color; } /* Keyword.Constant */
+  .kd { color: $gl-text-color; } /* Keyword.Declaration */
+  .kn { color: $gl-text-color; } /* Keyword.Namespace */
+  .kp { color: $gl-text-color; } /* Keyword.Pseudo */
+  .kr { color: $gl-text-color; } /* Keyword.Reserved */
+  .kt { color: $gl-text-color; } /* Keyword.Type */
+  .ld { color: $gl-text-color; } /* Literal.Date */
+  .m { color: $gl-text-color; } /* Literal.Number */
+  .s { color: $gl-text-color; } /* Literal.String */
+  .na { color: $gl-text-color; } /* Name.Attribute */
+  .nb { color: $gl-text-color; } /* Name.Builtin */
+  .nc { color: $gl-text-color; } /* Name.Class */
+  .no { color: $gl-text-color; } /* Name.Constant */
+  .nd { color: $gl-text-color; } /* Name.Decorator */
+  .ni { color: $gl-text-color; } /* Name.Entity */
+  .ne { color: $gl-text-color; } /* Name.Exception */
+  .nf { color: $gl-text-color; } /* Name.Function */
+  .nl { color: $gl-text-color; } /* Name.Label */
+  .nn { color: $gl-text-color; } /* Name.Namespace */
+  .nx { color: $gl-text-color; } /* Name.Other */
+  .py { color: $gl-text-color; } /* Name.Property */
+  .nt { color: $gl-text-color; } /* Name.Tag */
+  .nv { color: $gl-text-color; } /* Name.Variable */
+  .ow { color: $gl-text-color; } /* Operator.Word */
+  .w { color: $gl-text-color; } /* Text.Whitespace */
+  .mf { color: $gl-text-color; } /* Literal.Number.Float */
+  .mh { color: $gl-text-color; } /* Literal.Number.Hex */
+  .mi { color: $gl-text-color; } /* Literal.Number.Integer */
+  .mo { color: $gl-text-color; } /* Literal.Number.Oct */
+  .sb { color: $gl-text-color; } /* Literal.String.Backtick */
+  .sc { color: $gl-text-color; } /* Literal.String.Char */
+  .sd { color: $gl-text-color; } /* Literal.String.Doc */
+  .s2 { color: $gl-text-color; } /* Literal.String.Double */
+  .se { color: $gl-text-color; } /* Literal.String.Escape */
+  .sh { color: $gl-text-color; } /* Literal.String.Heredoc */
+  .si { color: $gl-text-color; } /* Literal.String.Interpol */
+  .sx { color: $gl-text-color; } /* Literal.String.Other */
+  .sr { color: $gl-text-color; } /* Literal.String.Regex */
+  .s1 { color: $gl-text-color; } /* Literal.String.Single */
+  .ss { color: $gl-text-color; } /* Literal.String.Symbol */
+  .bp { color: $gl-text-color; } /* Name.Builtin.Pseudo */
+  .vc { color: $gl-text-color; } /* Name.Variable.Class */
+  .vg { color: $gl-text-color; } /* Name.Variable.Global */
+  .vi { color: $gl-text-color; } /* Name.Variable.Instance */
+  .il { color: $gl-text-color; } /* Literal.Number.Integer.Long */
+
+}

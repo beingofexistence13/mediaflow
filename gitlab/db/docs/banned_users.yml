@@ -1,0 +1,10 @@
+---
+table_name: banned_users
+classes:
+- Users::BannedUser
+feature_categories:
+- system_access
+description: TODO
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/64728
+milestone: '14.2'
+gitlab_schema: gitlab_main

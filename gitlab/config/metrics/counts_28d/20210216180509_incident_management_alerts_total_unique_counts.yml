@@ -1,0 +1,30 @@
+---
+data_category: optional
+key_path: counts_monthly.aggregated_metrics.incident_management_alerts_total_unique_counts
+description: Count of unique users per month to take an action on an alert
+product_section: ops
+product_stage: monitor
+product_group: monitor
+value_type: number
+status: active
+time_frame: 28d
+instrumentation_class: AggregatedMetric
+data_source: redis_hll
+options:
+  aggregate:
+    operator: OR
+    attribute: user_id
+  events:
+    - 'incident_management_alert_status_changed'
+    - 'incident_management_alert_assigned'
+    - 'incident_management_alert_todo'
+    - 'incident_management_alert_create_incident'
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"

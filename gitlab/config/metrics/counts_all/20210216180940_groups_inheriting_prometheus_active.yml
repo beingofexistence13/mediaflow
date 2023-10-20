@@ -1,0 +1,20 @@
+---
+data_category: optional
+key_path: counts.groups_inheriting_prometheus_active
+description: Count of active groups inheriting integrations for Prometheus
+product_section: ops
+product_stage: monitor
+product_group: monitor
+value_type: number
+status: active
+time_frame: all
+data_source: database
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"

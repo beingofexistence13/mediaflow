@@ -1,0 +1,32 @@
+:ruby
+  title = if params[:reviewer_username] == current_user.username
+            _("Review requests")
+          elsif params[:assignee_username] == current_user.username
+            _("Assigned merge requests")
+          else
+            _("Merge requests")
+          end
+  page_title title
+  @breadcrumb_link = merge_requests_dashboard_path(assignee_username: current_user.username)
+  add_page_specific_style 'page_bundles/issuable_list'
+
+= render_dashboard_ultimate_trial(current_user)
+
+.page-title-holder.d-flex.align-items-start.flex-column.flex-sm-row.align-items-sm-center
+  %h1.page-title.gl-font-size-h-display= title
+
+  - if current_user
+    .page-title-controls.ml-0.mb-3.ml-sm-auto.mb-sm-0
+      = render 'shared/new_project_item_vue_select'
+
+.top-area
+  = render 'shared/issuable/nav', type: :merge_requests, display_count: !(@no_filters_set || @search_timeout_occurred)
+
+= render 'shared/issuable/search_bar', type: :merge_requests, disable_target_branch: true
+
+- if current_user && @no_filters_set
+  = render 'no_filter_selected'
+- elsif @search_timeout_occurred
+  = render 'shared/dashboard/search_timeout_occurred'
+- else
+  = render 'shared/merge_requests'

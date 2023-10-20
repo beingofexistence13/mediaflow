@@ -1,0 +1,74 @@
+<script>
+import { GlLoadingIcon } from '@gitlab/ui';
+import CiBadgeLink from '~/vue_shared/components/ci_badge_link.vue';
+import { createAlert } from '~/alert';
+import { getQueryHeaders, toggleQueryPollingByVisibility } from '~/ci/pipeline_details/graph/utils';
+import getLatestPipelineStatusQuery from '../graphql/queries/get_latest_pipeline_status.query.graphql';
+import { COMMIT_BOX_POLL_INTERVAL, PIPELINE_STATUS_FETCH_ERROR } from '../constants';
+
+export default {
+  PIPELINE_STATUS_FETCH_ERROR,
+  components: {
+    CiBadgeLink,
+    GlLoadingIcon,
+  },
+  inject: {
+    fullPath: {
+      default: '',
+    },
+    iid: {
+      default: '',
+    },
+    graphqlResourceEtag: {
+      default: '',
+    },
+  },
+  apollo: {
+    pipelineStatus: {
+      context() {
+        return getQueryHeaders(this.graphqlResourceEtag);
+      },
+      query: getLatestPipelineStatusQuery,
+      pollInterval: COMMIT_BOX_POLL_INTERVAL,
+      variables() {
+        return {
+          fullPath: this.fullPath,
+          iid: this.iid,
+        };
+      },
+      update({ project }) {
+        return project?.pipeline?.detailedStatus || {};
+      },
+      error() {
+        createAlert({ message: this.$options.PIPELINE_STATUS_FETCH_ERROR });
+      },
+    },
+  },
+  data() {
+    return {
+      pipelineStatus: {},
+    };
+  },
+  computed: {
+    loading() {
+      return this.$apollo.queries.pipelineStatus.loading;
+    },
+  },
+  mounted() {
+    toggleQueryPollingByVisibility(this.$apollo.queries.pipelineStatus);
+  },
+};
+</script>
+
+<template>
+  <div class="gl-display-inline-block gl-vertical-align-middle gl-mr-2">
+    <gl-loading-icon v-if="loading" />
+    <ci-badge-link
+      v-else
+      :status="pipelineStatus"
+      :details-path="pipelineStatus.detailsPath"
+      size="md"
+      :show-text="false"
+    />
+  </div>
+</template>

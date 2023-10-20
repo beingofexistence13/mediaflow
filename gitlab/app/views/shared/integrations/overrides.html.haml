@@ -1,0 +1,8 @@
+- add_to_breadcrumbs _('Integrations'), scoped_integrations_path(project: @project, group: @group)
+- breadcrumb_title @integration.title
+- page_title @integration.title, _('Integrations')
+
+%h1.page-title.gl-font-size-h-display
+  = @integration.title
+
+.js-vue-integration-overrides{ data: integration_overrides_data(@integration, project: @project, group: @group) }

@@ -1,0 +1,10 @@
+---
+table_name: webauthn_registrations
+classes:
+- WebauthnRegistration
+feature_categories:
+- system_access
+description: TODO
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/35797
+milestone: '13.2'
+gitlab_schema: gitlab_main

@@ -1,0 +1,29 @@
+- page_title s_('AdminArea|Users statistics')
+
+%h3.gl-my-6
+  = s_('AdminArea|Users statistics')
+
+= render 'admin/dashboard/stats_users_table', user_statistics: @users_statistics
+
+%p.gl-font-weight-bold.gl-mt-8
+  = s_('AdminArea|Totals')
+
+%table.table.gl-text-gray-500
+  = render_if_exists 'admin/dashboard/stats_active_users_row', users_statistics: @users_statistics
+
+  %tr.bg-gray-light.gl-text-gray-900
+    %td.gl-p-5!
+      %strong
+        = s_('AdminArea|Blocked users')
+    %td.gl-text-right{ class: 'gl-p-5!' }
+      %strong
+        = @users_statistics&.blocked
+  %tr.bg-gray-light.gl-text-gray-900
+    %td.gl-p-5!
+      %strong
+        = s_('AdminArea|Total users')
+      %span
+        (#{s_('AdminArea|active users + blocked users')})
+    %td.gl-text-right{ class: 'gl-p-5!' }
+      %strong
+        = @users_statistics&.total

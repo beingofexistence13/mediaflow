@@ -1,0 +1,10 @@
+include:
+  - local: gems/gem.gitlab-ci.yml
+    inputs:
+      gem_name: "bundler-checksum"
+      gem_path_prefix: "vendor/gems/"
+
+rspec:
+  extends: .ruby_matrix
+  script:
+    - pushd test/project_with_checksum_lock && scripts/test

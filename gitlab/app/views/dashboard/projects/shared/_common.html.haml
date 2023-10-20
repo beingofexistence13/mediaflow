@@ -1,0 +1,11 @@
+- page_title _("Projects")
+
+= render_dashboard_ultimate_trial(current_user)
+
+= render "projects/last_push"
+= render 'dashboard/projects_head', project_tab_filter: :starred
+
+- if params[:filter_projects] || any_projects?(@projects)
+  = render 'projects'
+- else
+  = render empty_page

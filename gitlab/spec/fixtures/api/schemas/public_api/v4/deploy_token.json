@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "username",
+    "expires_at",
+    "scopes",
+    "revoked",
+    "expired"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "token": {
+      "type": "string"
+    },
+    "revoked": {
+      "type": "boolean"
+    },
+    "expired": {
+      "type": "boolean"
+    }
+  }
+}

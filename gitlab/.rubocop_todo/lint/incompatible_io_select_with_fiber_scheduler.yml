@@ -1,0 +1,5 @@
+---
+# Cop supports --autocorrect.
+Lint/IncompatibleIoSelectWithFiberScheduler:
+  Exclude:
+    - 'lib/gitlab/stack_prof.rb'

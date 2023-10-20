@@ -1,0 +1,7 @@
+- page_title @hook.pluralized_name
+
+.settings-section
+  = render 'shared/web_hooks/title_and_docs', hook: @hook
+  = render 'shared/web_hooks/index', hooks: @hooks, hook_class: @hook.class, partial: 'form', url: admin_hooks_path
+
+= render 'shared/file_hooks/index'

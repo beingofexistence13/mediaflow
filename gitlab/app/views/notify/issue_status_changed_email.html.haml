@@ -1,0 +1,2 @@
+%p
+  = sprintf(s_('Notify|Issue was %{issue_status} by %{updated_by}'), { issue_status: @issue_status, updated_by: sanitize_name(@updated_by.name) }).html_safe

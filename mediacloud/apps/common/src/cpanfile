@@ -1,0 +1,30 @@
+requires 'Array::Compare';
+requires 'Data::Dumper';
+requires 'DateTime';
+requires 'DateTime::TimeZone';
+requires 'File::Slurp';
+requires 'File::Temp';
+requires 'FindBin';
+requires 'HTTP::Status';
+requires 'List::MoreUtils';
+requires 'Log::Log4perl';
+requires 'LWP::Protocol::https';
+requires 'LWP::UserAgent';
+requires 'Modern::Perl';
+requires 'Moose';
+requires 'Proc::ProcessTable';
+requires 'Readonly';
+requires 'Readonly::XS';
+requires 'Regexp::Common';
+requires 'Test::Class';
+requires 'Test::Deep';
+requires 'Test::Differences';
+requires 'Test::NoWarnings';
+requires 'Text::Trim';
+requires 'Text::WordDiff';
+requires 'URI';
+requires 'URI::Escape';
+requires 'URI::QueryParam';
+# Our code doesn't use it, but one of the dependencies attempts to load it and
+# fails silently spitting out weird errors
+requires 'YAML::XS';

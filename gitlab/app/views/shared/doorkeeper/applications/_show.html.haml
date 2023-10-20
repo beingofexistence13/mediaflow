@@ -1,0 +1,51 @@
+- show_trusted_row = local_assigns.fetch(:show_trusted_row, false)
+
+.table-holder.oauth-application-show
+  %table.table
+    %tr
+      %td
+        = _('Application ID')
+      %td
+        .clipboard-group
+          .input-group
+            %input.label.label-monospace.monospace{ id: "application_id", type: "text", autocomplete: 'off', value: @application.uid, readonly: true, data: { testid: 'application-id-field' } }
+            .input-group-append
+              = clipboard_button(target: "#application_id", title: _("Copy ID"), category: :primary, size: :medium)
+    %tr
+      %td
+        = _('Secret')
+      %td
+        #js-oauth-application-secret{ data: { initial_secret: @application.plaintext_secret, renew_path: renew_path } }
+
+    %tr
+      %td
+        = _('Callback URL')
+      %td
+        - @application.redirect_uri.split.each do |uri|
+          %div
+            %span.monospace= uri
+
+    - if show_trusted_row
+      %tr
+        %td
+          = _('Trusted')
+        %td
+          = @application.trusted? ? _('Yes') : _('No')
+
+    %tr
+      %td
+        = _('Confidential')
+      %td
+        = @application.confidential? ? _('Yes') : _('No')
+
+    = render "shared/tokens/scopes_list", token: @application
+
+.gl-display-flex.gl-justify-content-space-between
+  %div
+    - if @created
+      = link_button_to _('Continue'), index_path, class: 'gl-mr-3', variant: :confirm
+    = link_button_to _('Edit'), edit_path
+  = render 'shared/doorkeeper/applications/delete_form', path: delete_path
+
+-# Create a hidden field to save the ID of application created
+= hidden_field_tag(:id_of_application, @application.id, data: { testid: 'id-of-application-field' })

@@ -1,0 +1,56 @@
+- runner_name = runner_short_name(@runner)
+- breadcrumb_title _('Edit')
+- page_title _('Edit'), runner_name
+- add_to_breadcrumbs _('Runners'), admin_runners_path
+- add_to_breadcrumbs runner_name, admin_runner_path(@runner)
+
+#js-admin-runner-edit{ data: {runner_id: @runner.id, runner_path: admin_runner_path(@runner) } }
+
+- if @runner.project_type?
+  .gl-overflow-auto
+    %h4.gl-font-lg.gl-my-5= _('Restrict projects for this runner')
+
+  - if @runner.runner_projects.any?
+    %table.table{ data: { testid: 'assigned-projects' } }
+      %thead
+        %tr
+          %th= _('Assigned projects')
+      - @runner.runner_projects.each do |runner_project|
+        - project = runner_project.project
+        - if project
+          %tr
+            %td
+              = render Pajamas::AlertComponent.new(variant: :danger,
+                dismissible: false,
+                title: project.full_name) do |c|
+                - c.with_actions do
+                  = render Pajamas::ButtonComponent.new(variant: :confirm, href: admin_namespace_project_runner_project_path(project.namespace, project, runner_project), method: :delete) do
+                    = _('Disable')
+
+  %table.table{ data: { testid: 'unassigned-projects' } }
+    %thead
+      %tr
+        %th= s_('Runners|Select projects to assign to this runner')
+        %th
+
+    %tr
+      %td
+        = form_tag edit_admin_runner_path(@runner), id: 'runner-projects-search', class: 'form-inline', method: :get do
+          .input-group
+            = search_field_tag :search, params[:search], class: 'form-control gl-form-input', spellcheck: false
+            .input-group-append
+              = render Pajamas::ButtonComponent.new(type: 'submit', variant: :default) do
+                = _('Search')
+
+      %td
+    - @projects.each do |project|
+      %tr
+        %td
+          = project.full_name
+        %td
+          .float-right
+            = gitlab_ui_form_for project.runner_projects.new, url: admin_namespace_project_runner_projects_path(project.namespace, project), method: :post do |f|
+              = f.hidden_field :runner_id, value: @runner.id
+              = render Pajamas::ButtonComponent.new(size: :small, type: :submit) do
+                = _('Enable')
+  = paginate_without_count @projects

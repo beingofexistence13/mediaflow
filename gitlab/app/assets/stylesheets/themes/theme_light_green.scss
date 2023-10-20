@@ -1,0 +1,22 @@
+@import './theme_helper';
+
+body {
+  &.ui-light-green {
+    @include gitlab-theme(
+      $theme-green-200,
+      $theme-green-500,
+      $theme-green-500,
+      $theme-green-700,
+      $white
+    );
+
+    .page-with-super-sidebar {
+      @include gitlab-theme-super-sidebar(
+        $theme-green-50,
+        $theme-green-200,
+        $theme-green-700,
+        $theme-green-900,
+      );
+    }
+  }
+}

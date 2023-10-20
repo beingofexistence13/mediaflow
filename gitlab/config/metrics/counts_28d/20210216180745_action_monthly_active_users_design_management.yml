@@ -1,0 +1,24 @@
+---
+data_category: operational
+key_path: usage_activity_by_stage_monthly.create.action_monthly_active_users_design_management
+description: Monthly active users for design management
+product_section: dev
+product_stage: plan
+product_group: product_planning
+value_type: number
+status: active
+time_frame: 28d
+data_source: redis_hll
+instrumentation_class: RedisHLLMetric
+options:
+  events:
+    - design_action
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"

@@ -1,0 +1,24 @@
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "Pandora FMS"
+      VALUE "FileDescription", "Pandora FMS Agent for Windows Platform"
+      VALUE "LegalCopyright", "Pandora FMS"
+      VALUE "OriginalFilename", "PandoraAgent.exe"
+      VALUE "ProductName", "Pandora FMS Windows Agent"
+      VALUE "ProductVersion", "(7.0NG.773.3(Build 231020))"
+      VALUE "FileVersion", "1.0.0.0"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
+

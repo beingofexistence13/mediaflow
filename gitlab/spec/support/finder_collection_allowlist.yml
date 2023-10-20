@@ -1,0 +1,73 @@
+# Allow list for spec/support/finder_collection.rb
+
+# Permanent excludes
+# For example:
+# FooFinder  # Reason: It uses a memory backend
+- Namespaces::BilledUsersFinder # Reason: There is no need to have anything else besides the ids is current structure
+- Namespaces::FreeUserCap::UsersFinder # Reason: There is no need to have anything else besides the count
+- Groups::EnvironmentScopesFinder # Reason: There is no need to have anything else besides the simple strucutre with the scope name
+- Security::RelatedPipelinesFinder # Reason: There is no need to have anything else besides the IDs of pipelines
+- Llm::ExtraResourceFinder # Reason: The finder does not deal with DB-backend resource for now.
+
+# Temporary excludes (aka TODOs)
+# For example:
+# BarFinder  # See <ISSUE_URL>
+- AccessRequestsFinder
+- Admin::PlansFinder
+- Analytics::CycleAnalytics::StageFinder
+- ApplicationsFinder
+- Autocomplete::GroupFinder
+- Autocomplete::ProjectFinder
+- Autocomplete::UsersFinder
+- BilledUsersFinder
+- Boards::BoardsFinder
+- Boards::VisitsFinder
+- BranchesFinder
+- Ci::AuthJobFinder
+- Ci::CommitStatusesFinder
+- Ci::DailyBuildGroupReportResultsFinder
+- ClusterAncestorsFinder
+- Clusters::Agents::Authorizations::CiAccess::Finder
+- Clusters::Agents::Authorizations::UserAccess::Finder
+- Clusters::KubernetesNamespaceFinder
+- ComplianceManagement::MergeRequests::ComplianceViolationsFinder
+- ContainerRepositoriesFinder
+- ContextCommitsFinder
+- Environments::EnvironmentNamesFinder
+- Environments::EnvironmentsByDeploymentsFinder
+- EventsFinder
+- GroupDescendantsFinder
+- Groups::ProjectsRequiringAuthorizationsRefresh::OnDirectMembershipFinder
+- Groups::ProjectsRequiringAuthorizationsRefresh::OnTransferFinder
+- KeysFinder
+- LfsPointersFinder
+- LicenseTemplateFinder
+- MergeRequests::OldestPerCommitFinder
+- NotesFinder
+- Packages::BuildInfosFinder
+- Packages::Conan::PackageFileFinder
+- Packages::Go::ModuleFinder
+- Packages::Go::PackageFinder
+- Packages::Go::VersionFinder
+- Packages::PackageFileFinder
+- Packages::PackageFinder
+- Packages::Pypi::PackageFinder
+- Projects::Integrations::Jira::ByIdsFinder
+- Projects::Integrations::Jira::IssuesFinder
+- Releases::EvidencePipelineFinder
+- Repositories::BranchNamesFinder
+- Repositories::ChangelogTagFinder
+- Repositories::TreeFinder
+- Sbom::DependencyLicensesFinder
+- Security::FindingsFinder
+- Security::PipelineVulnerabilitiesFinder
+- Security::ScanExecutionPoliciesFinder
+- Security::ScanResultPoliciesFinder
+- SentryIssueFinder
+- ServerlessDomainFinder
+- TagsFinder
+- TemplateFinder
+- UploaderFinder
+- UserGroupNotificationSettingsFinder
+- UserGroupsCounter
+- DataTransfer::MockedTransferFinder # Can be removed when https://gitlab.com/gitlab-org/gitlab/-/issues/397693 is closed

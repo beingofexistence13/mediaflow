@@ -1,0 +1,14 @@
+fragment RunnerFieldsShared on CiRunner {
+  id
+  shortSha
+  runnerType
+  paused
+  accessLevel
+  runUntagged
+  locked
+  description
+  maximumTimeout
+  tagList
+  createdAt
+  status
+}

@@ -1,0 +1,80 @@
+#import "ee_else_ce/environments/graphql/fragments/environment_protected_data.fragment.graphql"
+#import "~/graphql_shared/fragments/user.fragment.graphql"
+#import "~/environments/graphql/fragments/deployment_job.fragment.graphql"
+
+query getEnvironmentDetails(
+  $projectFullPath: ID!
+  $environmentName: String
+  $first: Int
+  $last: Int
+  $after: String
+  $before: String
+) {
+  project(fullPath: $projectFullPath) {
+    id
+    name
+    fullPath
+    environment(name: $environmentName) {
+      ...ProtectedEnvironment
+      name
+      tier
+      lastDeployment(status: SUCCESS) {
+        id
+        job {
+          id
+          name
+        }
+      }
+      deployments(
+        orderBy: { createdAt: DESC }
+        first: $first
+        last: $last
+        after: $after
+        before: $before
+      ) {
+        pageInfo {
+          startCursor
+          endCursor
+          hasNextPage
+          hasPreviousPage
+        }
+        nodes {
+          id
+          iid
+          status
+          ref
+          tag
+          job {
+            ...DeploymentJob
+            deploymentPipeline: pipeline {
+              id
+              jobs(whenExecuted: ["manual"], retried: false) {
+                nodes {
+                  ...DeploymentJob
+                  scheduledAt
+                }
+              }
+            }
+          }
+          commit {
+            id
+            shortId
+            message
+            webUrl
+            authorGravatar
+            authorName
+            authorEmail
+            author {
+              ...User
+            }
+          }
+          triggerer {
+            ...User
+          }
+          createdAt
+          finishedAt
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+#import "./ready_to_merge_merge_request.fragment.graphql"
+
+fragment ReadyToMerge on Project {
+  id
+  onlyAllowMergeIfPipelineSucceeds
+  mergeRequestsFfOnlyEnabled
+  squashReadOnly
+  mergeRequest(iid: $iid) {
+    ...ReadyToMergeMergeRequest
+  }
+}

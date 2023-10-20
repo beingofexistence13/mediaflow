@@ -1,0 +1,36 @@
+- return unless Gitlab::CurrentSettings.project_export_enabled?
+
+- project = local_assigns.fetch(:project)
+
+= render Pajamas::CardComponent.new(card_options: { class: 'gl-new-card', data: { testid: 'export-project-content' } }, header_options: { class: 'gl-new-card-header' }, body_options: { class: 'gl-new-card-body gl-px-5 gl-py-4' }) do |c|
+  - c.with_header do
+    .gl-new-card-title-wrapper
+      %h4.gl-new-card-title= _('Export project')
+
+  - c.with_body do
+    %p
+      - link = link_to('', help_page_path('user/project/settings/import_export'), target: '_blank', rel: 'noopener noreferrer')
+      = safe_format(_('Export this project with all its related data in order to move it to a new GitLab instance. When the exported file is ready, you can download it from this page or from the download link in the email notification you will receive. You can then import it when creating a new project. %{link_start}Learn more.%{link_end}'), tag_pair(link, :link_start, :link_end))
+    .gl-mb-0
+      %p.gl-font-weight-bold= _('The following items will be exported:')
+      %ul
+        - project_export_descriptions.each do |desc|
+          %li= desc
+      %p.gl-font-weight-bold= _('The following items will NOT be exported:')
+      %ul
+        %li= _('Job logs and artifacts')
+        %li= _('Container registry images')
+        %li= _('CI variables')
+        %li= _('Pipeline triggers')
+        %li= _('Webhooks')
+        %li= _('Any encrypted tokens')
+    - if project.export_status == :finished
+      = render Pajamas::ButtonComponent.new(href: download_export_project_path(project),
+        method: :get,
+        button_options: { ref: 'nofollow', download: '', data: { testid: 'download-export-link' } }) do
+        = _('Download export')
+      = render Pajamas::ButtonComponent.new(href: generate_new_export_project_path(project), method: :post) do
+        = _('Generate new export')
+    - else
+      = render Pajamas::ButtonComponent.new(href: export_project_path(project), method: :post, button_options: { data: { testid: 'export-project-link' } }) do
+        = _('Export project')

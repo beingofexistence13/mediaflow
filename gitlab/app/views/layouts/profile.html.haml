@@ -1,0 +1,13 @@
+- page_title    _("User Settings")
+- header_title  _("User Settings"), profile_path unless header_title
+- sidebar       "dashboard"
+- nav           "profile"
+- @left_sidebar = true
+
+- enable_search_settings locals: { container_class: 'gl-my-5' }
+
+- content_for :flash_message do
+  = dispensable_render_if_exists "profiles/storage_enforcement_alert", context: current_user.namespace
+  = dispensable_render_if_exists "shared/namespace_storage_limit_alert", context: current_user.namespace
+
+= render template: "layouts/application"

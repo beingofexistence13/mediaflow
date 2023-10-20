@@ -1,0 +1,5 @@
+---
+Lint/ToEnumArguments:
+  Exclude:
+    - 'lib/gitlab/ci/trace/stream.rb'
+    - 'spec/lib/gitlab/ci/trace/section_parser_spec.rb'

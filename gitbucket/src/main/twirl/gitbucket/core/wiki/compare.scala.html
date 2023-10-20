@@ -1,0 +1,30 @@
+@(pageName: Option[String],
+  from: String,
+  to: String,
+  diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+    isEditable: Boolean,
+  info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"Compare Revisions - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.helper.html.information(info)
+  @gitbucket.core.html.menu("wiki", repository){
+    <div class="pull-right">
+      @if(pageName.isDefined){
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)">View Page</a>
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Back to Page History</a>
+      } else {
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/_history">Back to Wiki History</a>
+      }
+      @if(isEditable) {
+        @if(pageName.isDefined) {
+          <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
+        } else {
+          <a href="@helpers.url(repository)/wiki/_revert/@from...@to" class="btn btn-danger">Revert Changes</a>
+        }
+      }
+    </div>
+    <h1 class="body-title"><span class="muted">Compare Revisions</span></h1>
+    @gitbucket.core.helper.html.diff(diffs, repository, None, None, false, None, false, false)
+  }
+}

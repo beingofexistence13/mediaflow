@@ -1,0 +1,29 @@
+!!! 5
+%html{ lang: I18n.locale }
+  %head
+    %meta{ :content => "width=device-width, initial-scale=1", :name => "viewport" }
+    %title= yield(:title)
+    %style
+      = Rails.application.assets_manifest.find_sources('errors.css').first.to_s.html_safe
+  %body
+    .page-container
+      = yield
+    = javascript_tag do
+      :plain
+        (function(){
+          var goBackElement = document.querySelector('.js-go-back');
+
+          if (goBackElement && history.length > 1) {
+            goBackElement.removeAttribute('hidden');
+
+            goBackElement.querySelector('button').addEventListener('click', function() {
+              history.back();
+            });
+          }
+
+          // We do not have rails_ujs here, so we're manually making a link trigger a form submit.
+          document.querySelector('.js-sign-out-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.js-sign-out-form')?.submit();
+          });
+        }());

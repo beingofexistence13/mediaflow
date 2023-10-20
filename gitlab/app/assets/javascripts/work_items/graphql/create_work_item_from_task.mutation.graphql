@@ -1,0 +1,13 @@
+#import "./work_item.fragment.graphql"
+
+mutation workItemCreateFromTask($input: WorkItemCreateFromTaskInput!) {
+  workItemCreateFromTask(input: $input) {
+    workItem {
+      ...WorkItem
+    }
+    newWorkItem {
+      ...WorkItem
+    }
+    errors
+  }
+}

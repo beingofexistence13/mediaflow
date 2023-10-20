@@ -1,0 +1,10 @@
+#import "ee_else_ce/work_items/graphql/notes/work_item_note.fragment.graphql"
+
+mutation updateWorkItemNote($input: UpdateNoteInput!) {
+  updateNote(input: $input) {
+    note {
+      ...WorkItemNote
+    }
+    errors
+  }
+}

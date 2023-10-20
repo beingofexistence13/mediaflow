@@ -1,0 +1,14 @@
+@import 'mixins_and_variables_and_functions';
+
+$import-bar-height: $gl-spacing-scale-11;
+
+.import-table-bar {
+  height: $import-bar-height;
+  top: $calc-application-header-height;
+}
+
+.import-table {
+  thead {
+    top: calc(#{$calc-application-header-height} + #{$import-bar-height});
+  }
+}

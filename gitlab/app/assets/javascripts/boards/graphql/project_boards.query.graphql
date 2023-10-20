@@ -1,0 +1,11 @@
+query project_boards($fullPath: ID!) {
+  project(fullPath: $fullPath) {
+    id
+    boards {
+      nodes {
+        id
+        name
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+#import "~/graphql_shared/fragments/user.fragment.graphql"
+#import "~/graphql_shared/fragments/user_availability.fragment.graphql"
+
+query issueAssignees($fullPath: ID!, $iid: String!) {
+  workspace: project(fullPath: $fullPath) {
+    id
+    issuable: issue(iid: $iid) {
+      id
+      author {
+        ...User
+        ...UserAvailability
+      }
+      assignees {
+        nodes {
+          ...User
+          ...UserAvailability
+        }
+      }
+    }
+  }
+}

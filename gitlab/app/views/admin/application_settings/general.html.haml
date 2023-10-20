@@ -1,0 +1,123 @@
+- breadcrumb_title _("General")
+- page_title _("General")
+- add_page_specific_style 'page_bundles/settings'
+- @force_desktop_expanded_sidebar = true
+
+%section.settings.as-visibility-access.no-animate#js-visibility-settings{ class: ('expanded' if expanded_by_default?), data: { testid: 'admin-visibility-access-settings' } }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Visibility and access controls')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = s_('AdminSettings|Set visibility of project contents and configure Git access protocols.')
+  .settings-content
+    = render 'visibility_and_access'
+
+%section.settings.as-account-limit.no-animate#js-account-settings{ class: ('expanded' if expanded_by_default?), data: { testid: 'account-and-limit-settings-content'} }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Account and limit')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Set projects and maximum size limits, session duration, user options, and check feature availability for namespace plan.')
+  .settings-content
+    = render 'account_and_limit'
+
+%section.settings.as-import-export.no-animate#js-import-export-settings{ class: ('expanded' if expanded_by_default?), data: { testid: 'admin-import-export-settings' } }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Import and export settings')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle '}) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Configure import sources and settings related to import and export features.')
+  .settings-content
+    = render 'import_and_export'
+
+%section.settings.as-diff-limits.no-animate#js-merge-request-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Diff limits')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Set size limits for displaying diffs in the browser.')
+  .settings-content
+    = render 'diff_limits'
+
+%section.settings.as-signup.no-animate#js-signup-settings{ class: ('expanded' if expanded_by_default?), data: { testid: 'sign-up-restrictions-settings-content' } }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Sign-up restrictions')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Configure the way a user creates a new account.')
+  .settings-content
+    = render 'signup'
+
+%section.settings.as-signin.no-animate#js-signin-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Sign-in restrictions')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Set sign-in restrictions for all users.')
+      = link_to _('Learn more.'), help_page_path('administration/settings/sign_in_restrictions.md'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    = render 'signin'
+
+%section.settings.as-terms.no-animate#js-terms-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Terms of Service and Privacy Policy')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Add a Terms of Service agreement and Privacy Policy for users of this GitLab instance.')
+      = link_to _('Learn more.'), help_page_path('administration/settings/terms.md'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    = render 'terms'
+
+= render 'admin/application_settings/external_authorization_service_form', expanded: expanded_by_default?
+
+= render_if_exists 'admin/application_settings/microsoft_application'
+= render_if_exists 'admin/application_settings/scim'
+
+%section.settings.as-terminal.no-animate#js-terminal-settings{ class: ('expanded' if expanded_by_default?) }
+  .settings-header
+    %h4.settings-title.js-settings-toggle.js-settings-toggle-trigger-only
+      = _('Web terminal')
+    = render Pajamas::ButtonComponent.new(button_options: { class: 'js-settings-toggle' }) do
+      = expanded_by_default? ? _('Collapse') : _('Expand')
+    %p.gl-text-secondary
+      = _('Set the maximum session time for a web terminal.')
+      = link_to _('How do I use a web terminal?'), help_page_path('ci/environments/index.md', anchor: 'web-terminals-deprecated'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    = render 'terminal'
+
+= render_if_exists 'admin/application_settings/maintenance_mode_settings_form'
+= render 'admin/application_settings/silent_mode_settings_form'
+= render 'admin/application_settings/gitpod'
+= render 'admin/application_settings/kroki'
+= render 'admin/application_settings/mailgun'
+= render 'admin/application_settings/plantuml'
+= render 'admin/application_settings/diagramsnet'
+= render 'admin/application_settings/sourcegraph'
+-# this partial is from JiHu, see details in https://jihulab.com/gitlab-cn/gitlab/-/merge_requests/417
+= render_if_exists 'admin/application_settings/dingtalk_integration'
+-# this partial is from JiHu, see details in https://jihulab.com/gitlab-cn/gitlab/-/merge_requests/640
+= render_if_exists 'admin/application_settings/feishu_integration'
+= render 'admin/application_settings/third_party_offers'
+= render 'admin/application_settings/snowplow'
+= render_if_exists 'admin/application_settings/product_analytics'
+= render 'admin/application_settings/error_tracking' if Feature.enabled?(:gitlab_error_tracking)
+= render 'admin/application_settings/eks'
+= render 'admin/application_settings/floc'
+= render_if_exists 'admin/application_settings/add_license'
+= render 'admin/application_settings/jira_connect'
+= render 'admin/application_settings/slack'
+= render_if_exists 'admin/application_settings/ai_access'

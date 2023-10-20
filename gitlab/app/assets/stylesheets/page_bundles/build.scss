@@ -1,0 +1,176 @@
+@import 'mixins_and_variables_and_functions';
+
+.build-page {
+  .build-log {
+    @include build-log();
+  }
+
+  .archived-job {
+    top: $calc-application-header-height;
+    border-radius: 2px 2px 0 0;
+    color: var(--orange-600, $orange-600);
+    background-color: var(--orange-50, $orange-50);
+    border: 1px solid var(--border-color, $border-color);
+  }
+
+  .top-bar {
+    @include build-log-top-bar(50px);
+    z-index: 2;
+    border-radius: $border-radius-default $border-radius-default 0 0;
+    box-shadow: 0 -4px 0 0 var(--white);
+
+    &.has-archived-block {
+      top: calc(#{$calc-application-header-height} + 28px);
+    }
+
+    &.affix {
+      top: $calc-application-header-height;
+
+      // with sidebar
+      &.sidebar-expanded {
+        right: 306px;
+        left: 16px;
+      }
+
+      // without sidebar
+      &.sidebar-collapsed {
+        right: 16px;
+        left: 16px;
+      }
+    }
+
+    .controllers {
+      @include build-controllers(15px, center, false, 0, inline, 0);
+    }
+  }
+
+  .environment-information {
+    border: 1px solid var(--border-color, $border-color);
+    padding: 8px $gl-padding 12px;
+    border-radius: $border-radius-default;
+
+    svg {
+      position: relative;
+      top: 3px;
+      margin-right: 5px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  .build-loader-animation {
+    @include build-loader-animation;
+    float: left;
+    padding-left: $gl-padding-8;
+  }
+}
+
+.build-header {
+  .page-content-header {
+    padding: 10px 0 9px;
+  }
+
+  .header-content {
+    a {
+      color: var(--gl-text-color, $gl-text-color);
+
+      &:hover {
+        color: var(--blue-600, $blue-600);
+        text-decoration: none;
+      }
+    }
+  }
+
+  .avatar {
+    float: none;
+    margin-right: 2px;
+    margin-left: 2px;
+  }
+}
+
+.right-sidebar.build-sidebar {
+  padding: 0;
+
+  @include media-breakpoint-up(lg) {
+    @include gl-border-l-0;
+  }
+
+  &.right-sidebar-collapsed {
+    display: none;
+  }
+
+  .sidebar-container {
+    @include gl-sticky;
+    top: #{$top-bar-height - 1px};
+    max-height: calc(100vh - #{$top-bar-height - 1px} - var(--performance-bar-height));
+    overflow-y: scroll;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .trigger-build-variable {
+    font-weight: $gl-font-weight-normal;
+    color: var(--gray-950, $gray-950);
+  }
+
+  .trigger-build-value {
+    padding: 2px 4px;
+    color: var(--black, $black);
+  }
+
+  .trigger-variables-table-cell {
+    font-size: $gl-font-size-small;
+    line-height: $gl-line-height;
+    border: 1px solid $gray-100;
+    padding: $gl-padding-4 6px;
+    width: 50%;
+    vertical-align: top;
+  }
+
+  .blocks-container {
+    width: 289px;
+  }
+
+  .block {
+    width: 262px;
+  }
+
+  .builds-container {
+    overflow: auto;
+
+    .icon-arrow-right {
+      left: 8px;
+      top: 12px;
+    }
+
+    .build-job {
+      &.retried {
+        background-color: var(--gray-10, $gray-10);
+      }
+
+      &:hover {
+        background-color: var(--gray-50, $gray-50);
+      }
+    }
+  }
+}
+
+.build-sidebar {
+  .container-fluid.container-limited {
+    max-width: 100%;
+  }
+}
+
+.build-sidebar-item {
+  &:last-of-type {
+    @include gl-mb-0;
+  }
+}
+
+.build-detail-row {
+  margin-bottom: 5px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}

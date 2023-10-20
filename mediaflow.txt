@@ -1,0 +1,10 @@
+git clone https://github.com/gitlabhq/gitlabhq.git gitlab && cd gitlab && rm -rf .git && cd ..
+git clone https://github.com/sitaramc/gitolite.git gitolite && cd gitolite && rm -rf .git && cd ..
+git clone https://github.com/go-gitea/gitea.git gitea && cd gitea && rm -rf .git && cd ..
+git clone https://github.com/gitbucket/gitbucket.git gitbucket && cd gitbucket && rm -rf .git && cd ..
+git clone https://github.com/rhodecode/rhodecode-enterprise-ce.git rhodecode && cd rhodecode && rm -rf .git && cd ..
+git clone https://github.com/mediacloud/backend.git mediacloud && cd mediacloud && rm -rf .git && cd ..
+git clone https://github.com/TID-Lab/aggie.git aggie && cd aggie && rm -rf .git && cd ..
+git clone https://github.com/pandorafms/pandorafms.git pandorafms && cd pandorafms && rm -rf .git && cd ..
+git clone https://github.com/gitbucket/gitbucket.git gitbucket-media-streaming && cd gitbucket-media-streaming && rm -rf .git && cd ..
+git clone https://github.com/rhodecode/rhodecode-enterprise-ce.git rhodecode-media-streaming && cd rhodecode-media-streaming && rm -rf .git && cd ..

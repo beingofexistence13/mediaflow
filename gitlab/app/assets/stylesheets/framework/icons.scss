@@ -1,0 +1,87 @@
+@mixin icon-styles($primary-color, $svg-color) {
+  svg,
+  .gl-icon {
+    fill: $primary-color;
+  }
+
+  // For the pipeline mini graph, we pass a custom 'gl-border' so that we can enforce
+  // a border of 1px instead of the thicker svg borders to adhere to design standards.
+  // If we implement the component with 'isBorderless' and also pass that border,
+  // this css is to dynamically apply the correct border color for those specific icons.
+  &.borderless {
+    border-color: $primary-color;
+  }
+
+  &.interactive {
+    &:hover {
+      background: $svg-color;
+    }
+
+    &:hover,
+    &.active {
+      box-shadow: 0 0 0 1px $primary-color;
+    }
+  }
+}
+
+.ci-status-icon-success,
+.ci-status-icon-passed {
+  @include icon-styles($green-500, $green-100);
+}
+
+.ci-status-icon-error,
+.ci-status-icon-failed {
+  @include icon-styles($red-500, $red-100);
+}
+
+.ci-status-icon-pending,
+.ci-status-icon-waiting-for-resource,
+.ci-status-icon-failed-with-warnings,
+.ci-status-icon-success-with-warnings {
+  @include icon-styles($orange-500, $orange-100);
+}
+
+.ci-status-icon-running {
+  @include icon-styles($blue-500, $blue-100);
+}
+
+.ci-status-icon-canceled,
+.ci-status-icon-disabled,
+.ci-status-icon-scheduled,
+.ci-status-icon-manual {
+  @include icon-styles($gray-900, $gray-100);
+}
+
+.ci-status-icon-notification,
+.ci-status-icon-preparing,
+.ci-status-icon-created,
+.ci-status-icon-skipped,
+.ci-status-icon-notfound {
+  @include icon-styles($gray-500, $gray-100);
+}
+
+.password-status-icon-success {
+  svg {
+    vertical-align: middle;
+    fill: $green-500;
+  }
+}
+
+.icon-link {
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.user-avatar-link {
+  text-decoration: none;
+}
+
+.circle-icon-container {
+  $border-size: 1px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $gray-500;
+}

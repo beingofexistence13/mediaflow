@@ -1,0 +1,40 @@
+- title = _('Authenticate with GitHub')
+- page_title title
+- header_title _("New project"), new_project_path
+- add_to_breadcrumbs s_('ProjectsNew|Import project'), new_project_path(anchor: 'import_project')
+
+%h1.page-title.gl-font-size-h-display
+  = title
+
+%p
+  = import_github_authorize_message
+
+- if github_import_configured? && !has_ci_cd_only_params?
+  = render Pajamas::ButtonComponent.new(variant: :confirm,
+    href: status_import_github_path(namespace_id: params[:namespace_id]),
+    icon: 'github') do
+    = title
+
+  %hr
+
+- unless github_import_configured? || has_ci_cd_only_params?
+  .bs-callout.bs-callout-info
+    = import_configure_github_admin_message
+
+= form_tag personal_access_token_import_github_path, method: :post do
+  .form-group
+    %label.label-bold= _('Personal Access Token')
+    = hidden_field_tag(:namespace_id, params[:namespace_id])
+    = text_field_tag :personal_access_token, '', class: 'form-control gl-form-input', placeholder: _('e.g. %{token}') % { token: '8d3f016698e...' }, data: { qa_selector: 'personal_access_token_field' }
+    %span.form-text.gl-text-gray-600
+      = import_github_personal_access_token_message
+
+  = render_if_exists 'import/github/ci_cd_only'
+
+  .form-actions.gl-display-flex.gl-justify-content-end
+    = render Pajamas::ButtonComponent.new(href: new_project_path) do
+      = _('Cancel')
+    = render Pajamas::ButtonComponent.new(variant: :confirm,
+      type: :submit,
+      button_options: { class: 'gl-ml-3', data: { qa_selector: 'authenticate_button' } }) do
+      = _('Authenticate')

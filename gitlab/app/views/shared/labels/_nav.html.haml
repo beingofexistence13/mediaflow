@@ -1,0 +1,21 @@
+- subscribed = params[:subscribed]
+
+.top-area.adjust
+  = gl_tabs_nav({ class: 'gl-flex-grow-1 gl-border-0' }) do
+    = gl_tab_link_to _('All'), labels_filter_path, { item_active: subscribed != 'true' }
+    - if current_user
+      = gl_tab_link_to _('Subscribed'), labels_filter_path(subscribed: 'true'), { item_active: subscribed == 'true' }
+  .nav-controls
+    = form_tag labels_filter_path, method: :get do
+      = hidden_field_tag :subscribed, params[:subscribed]
+      .input-group
+        = search_field_tag :search, params[:search], { placeholder: _('Filter'), id: 'label-search', class: 'form-control search-text-input input-short', spellcheck: false, autofocus: true }
+        %span.input-group-append
+          = render Pajamas::ButtonComponent.new(icon: 'search', button_options: { type: "submit", "aria-label" => _('Submit search') })
+    = render 'shared/labels/sort_dropdown'
+    - if labels_or_filters && can_admin_label && @project
+      = render Pajamas::ButtonComponent.new(variant: :confirm, href: new_project_label_path(@project), button_options: { data: { testid: 'create-new-label-button' } }) do
+        = _('New label')
+    - if labels_or_filters && can_admin_label && @group
+      = render Pajamas::ButtonComponent.new(variant: :confirm, href: new_group_label_path(@group), button_options: { data: { testid: 'create-new-label-button' } }) do
+        = _('New label')

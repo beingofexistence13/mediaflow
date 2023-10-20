@@ -1,0 +1,63 @@
+# frozen_string_literal: true
+
+module Sidebars
+  module Projects
+    module Menus
+      class SecurityComplianceMenu < ::Sidebars::Menu
+        include Gitlab::Utils::StrongMemoize
+
+        override :configure_menu_items
+        def configure_menu_items
+          return false unless can?(context.current_user, :access_security_and_compliance, context.project)
+
+          add_item(configuration_menu_item)
+
+          true
+        end
+
+        override :title
+        def title
+          _('Security and Compliance')
+        end
+
+        override :sprite_icon
+        def sprite_icon
+          'shield'
+        end
+
+        override :serialize_as_menu_item_args
+        def serialize_as_menu_item_args
+          nil
+        end
+
+        private
+
+        def configuration_menu_item
+          unless render_configuration_menu_item?
+            return ::Sidebars::NilMenuItem.new(item_id: :configuration)
+          end
+
+          ::Sidebars::MenuItem.new(
+            title: _('Security configuration'),
+            link: project_security_configuration_path(context.project),
+            super_sidebar_parent: ::Sidebars::Projects::SuperSidebarMenus::SecureMenu,
+            active_routes: { path: configuration_menu_item_paths },
+            item_id: :configuration
+          )
+        end
+
+        def render_configuration_menu_item?
+          can?(context.current_user, :read_security_configuration, context.project)
+        end
+
+        def configuration_menu_item_paths
+          %w[
+            projects/security/configuration#show
+          ]
+        end
+      end
+    end
+  end
+end
+
+Sidebars::Projects::Menus::SecurityComplianceMenu.prepend_mod_with('Sidebars::Projects::Menus::SecurityComplianceMenu')

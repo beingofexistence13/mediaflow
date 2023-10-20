@@ -1,0 +1,607 @@
+/**
+ * File content holder
+ *
+ */
+.file-holder {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-default;
+
+  &.file-holder-top-border {
+    border-top: 1px solid $border-color;
+
+    .file-title {
+      // Prevents the top border getting clipped by the background
+      border-top-left-radius: $border-radius-default;
+      border-top-right-radius: $border-radius-default;
+    }
+  }
+
+  &.file-holder-no-border {
+    border: 0;
+  }
+
+  &.readme-holder {
+    margin: $gl-padding 0;
+  }
+
+  .file-title {
+    position: relative;
+    background-color: var(--gray-10, $gray-10);
+    border-bottom: 1px solid  var(--border-color, $border-color);
+    margin: 0;
+    text-align: left;
+    padding: 10px $gl-padding;
+    word-wrap: break-word;
+
+    &.file-title-clear {
+      padding-left: 0;
+      padding-right: 0;
+      background-color: transparent;
+
+      .file-actions {
+        right: 0;
+      }
+    }
+
+    .file-actions {
+      .btn:not(.btn-icon) {
+        padding: 0 10px;
+        font-size: 13px;
+        line-height: 28px;
+      }
+    }
+
+    a:not(.btn) {
+      color: $gl-text-color;
+    }
+
+    .left-options {
+      margin-top: -3px;
+    }
+  }
+
+  .file-blame-legend {
+    background-color: $gray-light;
+    text-align: right;
+    padding: 8px $gl-padding;
+    border-bottom: 1px solid $border-color;
+
+    @include media-breakpoint-down(xs) {
+      text-align: left;
+    }
+
+    .left-label {
+      padding-right: 5px;
+    }
+
+    .right-label {
+      padding-left: 5px;
+    }
+
+    .legend-box {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      padding: 0 2px;
+    }
+
+    @for $i from 0 through 5 {
+      .legend-box-#{$i} {
+        background-color: mix($blame-cyan, $blame-blue, $i / 5 * 100%);
+      }
+    }
+
+    @for $i from 1 through 4 {
+      .legend-box-#{$i + 5} {
+        background-color: mix($blame-gray, $blame-cyan, $i / 4 * 100%);
+      }
+    }
+  }
+
+  .file-content {
+    &.image_file,
+    &.audio,
+    &.video {
+      background: $gray-darker;
+      text-align: center;
+      padding: 30px;
+
+      img,
+      audio,
+      video {
+        max-width: 80%;
+      }
+    }
+
+    &.md {
+      padding: $gl-padding;
+
+      @include media-breakpoint-up(md) {
+        padding: $gl-padding * 2;
+      }
+    }
+
+    &.blob-no-preview {
+      background: $gray-darker;
+      text-shadow: 0 1px 2px $white;
+      padding: 100px 0;
+    }
+
+    &.logs {
+      background: $gray-darker;
+      max-height: 700px;
+      overflow-y: auto;
+
+      ol {
+        margin-left: 40px;
+        padding: 10px 0;
+        border-left: 1px solid $border-color;
+        margin-bottom: 0;
+        background: $white;
+
+        li {
+          color: $logs-li-color;
+
+          p {
+            margin: 0;
+            color: $logs-p-color;
+            line-height: 24px;
+            padding-left: 10px;
+          }
+
+          &:hover {
+            background: $blue-50;
+          }
+        }
+      }
+    }
+
+    .list-inline.previews {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: flex-start;
+      align-items: baseline;
+
+      .preview {
+        padding: $gl-padding;
+      }
+    }
+
+    .content-visibility-auto {
+      content-visibility: auto;
+    }
+  }
+}
+
+span.idiff {
+  &.left {
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+  }
+
+  &.right {
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
+  }
+}
+
+.file-stats {
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+
+    li {
+      padding: 3px 0;
+      line-height: 20px;
+    }
+  }
+
+  .new-file {
+    a {
+      color: $green-600;
+    }
+  }
+
+  .renamed-file {
+    a {
+      color: $orange-500;
+    }
+  }
+
+  .deleted-file {
+    a {
+      color: $red-500;
+    }
+  }
+
+  .edit-file {
+    a {
+      color: $gl-text-color;
+    }
+  }
+
+  a {
+    text-decoration: none;
+
+    .new-file {
+      color: $green-600;
+    }
+
+    .deleted-file {
+      color: $red-700;
+    }
+  }
+}
+
+.file-title-flex-parent {
+  &,
+  .file-holder & {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    background-color: $gray-light;
+    border-bottom: 1px solid $border-color;
+    padding: $gl-padding-8 $gl-padding;
+    margin: 0;
+    border-radius: $border-radius-default $border-radius-default 0 0;
+
+    @include media-breakpoint-up(md) {
+      flex-wrap: nowrap;
+    }
+  }
+
+  .file-header-content {
+    padding-right: 30px;
+  }
+
+  a {
+    color: $gl-text-color;
+  }
+}
+
+.file-validation {
+  // we use $gray-light variable instead of utility class, because it's value is dynamic per color theme
+  background-color: $gray-light;
+}
+
+.blob-content-holder .file-actions {
+  @include media-breakpoint-down(sm) {
+    .btn {
+      margin-bottom: $gl-padding-8;
+    }
+  }
+}
+
+.is-stl-loading {
+  .stl-controls {
+    display: none;
+  }
+}
+
+.file-fork-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: $gray-light;
+  border-bottom: 1px solid $border-color;
+  padding: 5px $gl-padding;
+}
+
+.file-fork-suggestion-note {
+  margin-right: 1.5em;
+}
+
+.preview-container {
+  overflow: auto;
+
+  .file-container {
+    background-color: $gray-darker;
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    .file-content {
+      padding: $gl-padding;
+      max-width: 100%;
+      max-height: 100%;
+
+      img {
+        max-width: 90%;
+        max-height: 70vh;
+      }
+
+      .is-zoomable {
+        cursor: pointer;
+        cursor: zoom-in;
+
+        &.is-zoomed {
+          cursor: pointer;
+          cursor: zoom-out;
+          max-width: none;
+          max-height: none;
+          margin-right: $gl-padding;
+        }
+      }
+    }
+
+    .file-info {
+      font-size: $label-font-size;
+      color: $diff-image-info-color;
+    }
+  }
+
+  .note-container {
+    .user-avatar-link.new-comment {
+      position: absolute;
+    }
+  }
+
+  .diff-discussions:not(:last-child) .discussion .discussion-body {
+    padding-bottom: $gl-padding;
+
+    .discussion-reply-holder {
+      border-bottom: 1px solid $gray-50;
+      border-radius: 0;
+    }
+  }
+
+  .md-previewer {
+    padding: $gl-padding;
+  }
+}
+
+#js-openapi-viewer {
+  pre.version,
+  code {
+    background-color: transparent;
+    border: transparent;
+  }
+
+  .gl-dark & {
+    background: transparent;
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
+
+.code-navigation-line:hover {
+  .code-navigation {
+    border-bottom: 1px $gray-darkest dashed;
+
+    &:hover {
+      border-bottom-color: $almost-black;
+    }
+  }
+}
+
+.code-navigation-popover.popover {
+  max-width: calc(min(#{px-to-rem(560px)}, calc(100vw - #{$gl-padding-32})));
+}
+
+.code-navigation-popover-container {
+  max-height: px-to-rem(320px);
+}
+
+.code-navigation-popover .code {
+  padding-left: $grid-size * 3;
+  text-indent: -$grid-size * 2;
+}
+
+.tree-item-link {
+  &:not(.is-submodule) {
+    span {
+      z-index: 2;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+  }
+}
+
+.version-link {
+  @include gl-display-inline-block;
+  @include gl-align-self-center;
+  @include gl-mt-2;
+  @include gl-w-5;
+  @include gl-h-5;
+  @include gl-float-left;
+  background-color: $gray-400;
+  mask-image: asset_url('icons-stacked.svg#doc-versions');
+  mask-repeat: no-repeat;
+  mask-size: cover;
+  mask-position: center;
+
+  &:hover {
+    background-color: $black;
+  }
+}
+
+//
+// IMPORTANT PERFORMANCE OPTIMIZATION BELOW
+//
+// * :nth-of-type(1n+70) - makes sure we do not render lines 71+ right
+// away. Even though the HTML is injected in the DOM, as long as we do
+// not render those lines, the browser doesn't need to spend resources
+// calculating and repainting what's hidden.
+//
+// * :not(:last-of-type) makes sure that we output the last line of the
+// blob's snippet. This is important because the column with the line
+// numbers has auto width and is expanding based on the content in it.
+// This leads to unnecessary layout shift when the last lines of the
+// snippet are longer than two (2) digits.
+// EXAMPLE: Let's say, we have a blob with 100 lines. If we output 70
+// lines, and then, the remaining 30 (incl the line 100), it will lead
+// to the layout reflow and styles recalculation when we output line
+// 100 (because the width of '100' is always bigger than '70'). By
+// outputting the last line right away, we prevent that as the column
+// will always be expanded to the maximum needed width.
+.blob-viewer[data-loading] .file-content.code .line:nth-of-type(1n+70):not(:last-of-type),
+.blob-viewer[data-loading] .file-content.code .file-line-num:nth-of-type(1n+70):not(:last-of-type) {display: none !important;}
+
+.blob-viewer[data-loading] .file-content.code .line:nth-of-type(69):not(:last-of-type),
+.blob-viewer[data-loading] .file-content.code .file-line-num:nth-of-type(69):not(:last-of-type) {
+  &::after {
+    @include gl-display-block;
+    @include gl-font-weight-bold;
+    content: '\2026';
+  }
+}
+
+.blob-viewer[data-loading] .file-content.code .line:nth-of-type(69):not(:last-of-type) {
+  &::after {
+    @include gl-text-center;
+  }
+}
+
+// *:nth-of-type(1n+30) - makes sure we do not render elements 30+ right away when
+// viewing a file. Even though the HTML is injected in the DOM, as long as we do
+// not render those elements, the browser doesn't need to spend resources
+// calculating and repainting what's hidden.
+.file-holder [data-loading] .file-content *:nth-of-type(1n+30) {
+  @include gl-display-none;
+}
+
+.mr-tree-list:not(.tree-list-blobs) {
+  overflow: hidden;
+
+  .tree-list-parent::before {
+    @include gl-content-empty;
+    @include gl-absolute;
+    @include gl-z-index-1;
+    @include gl-pointer-events-none;
+
+    top: -4px;
+    left: 0;
+    width: 100%;
+    bottom: -4px;
+    // The virtual scroller has a flat HTML structure so instead of the ::before
+    // element stretching over multiple rows we instead create a repeating background image
+    // for the line
+    background: repeating-linear-gradient(to right, var(--gray-100, $gray-100), var(--gray-100, $gray-100) 1px, transparent 1px, transparent 14px);
+    background-size: calc(var(--level) * 14px) 100%;
+    background-repeat: no-repeat;
+    background-position: 14px;
+  }
+}
+
+.blame-table {
+  margin: 0;
+}
+
+.blame-table-wrapper {
+  overflow-x: auto;
+  min-width: max-content;
+}
+
+.blame {
+  position: relative;
+
+  .tr {
+    display: flex;
+    border-bottom: 1px solid $gray-darker;
+
+    &.last-row {
+      border-bottom: 0;
+    }
+  }
+
+  .blame-commit {
+    width: 400px;
+    flex: none;
+    background: $gray-light;
+    border-left: 3px solid;
+
+    .commit-row-title {
+      display: flex;
+    }
+
+    .item-title {
+      flex: 1;
+      margin-right: 0.5em;
+    }
+  }
+
+  .lines {
+    flex: 1;
+  }
+
+  .code {
+    height: 100%;
+  }
+
+  @for $i from 0 through 5 {
+    .blame-commit-age-#{$i} {
+      border-left-color: mix($blame-cyan, $blame-blue, $i / 5 * 100%);
+    }
+  }
+
+  @for $i from 1 through 4 {
+    .blame-commit-age-#{$i + 5} {
+      border-left-color: mix($blame-gray, $blame-cyan, $i / 4 * 100%);
+    }
+  }
+
+  .doc-versions {
+    color: $gray-400;
+
+    &:hover {
+      color: $gray-900;
+    }
+  }
+}
+
+.blame.file-content .td.line-numbers {
+  float: none;
+  border-left: 1px solid $gray-100;
+  border-radius: 0;
+
+  .file-line-num {
+    @include gl-min-w-9;
+  }
+}
+
+.code {
+  padding: 0;
+  border-radius: 0 0 $border-radius-default $border-radius-default;
+}
+
+.blame-stream-container {
+  border-top: 1px solid $border-color;
+}
+
+.blame-stream-loading {
+  $gradient-size: 16px;
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -$gradient-size;
+  height: $gl-spacing-scale-10;
+  border-top: $gradient-size solid transparent;
+  background-color: $white;
+  box-sizing: content-box;
+  background-clip: content-box;
+
+  .gradient {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -$gradient-size;
+    height: $gradient-size;
+    background: linear-gradient(to top, $white, transparentize($white, 1));
+  }
+}

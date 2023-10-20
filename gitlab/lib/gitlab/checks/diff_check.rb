@@ -1,0 +1,106 @@
+# frozen_string_literal: true
+
+module Gitlab
+  module Checks
+    class DiffCheck < BaseSingleChecker
+      include Gitlab::Utils::StrongMemoize
+
+      LOG_MESSAGES = {
+        validate_file_paths: "Validating diffs' file paths..."
+      }.freeze
+
+      def validate!
+        # git-notes stores notes history as commits in refs/notes/commits (by
+        # default but is configurable) so we restrict the diff checks to tag
+        # and branch refs
+        return unless tag_ref? || branch_ref?
+        return if deletion?
+        return unless should_run_validations?
+        return if commits.empty?
+
+        paths = project.repository.find_changed_paths(treeish_objects, merge_commit_diff_mode: :all_parents)
+        paths.each do |path|
+          validate_path(path)
+        end
+
+        validate_file_paths(paths.map(&:path).uniq)
+      end
+
+      private
+
+      def treeish_objects
+        objects = commits
+
+        return objects unless project.repository.empty? &&
+          Feature.enabled?(:verify_push_rules_for_first_commit, project)
+
+        # It's a special case for the push to the empty repository
+        #
+        # Git doesn't display a diff of the initial commit of the repository
+        # if we just provide a commit sha.
+        #
+        # To fix that we can use TreeRequest to check the difference
+        # between empty tree sha and the tree sha of the initial commit
+        #
+        # `commits` are sorted in reverse order, the initial commit is the last one.
+        init_commit = objects.last
+
+        diff_tree = Gitlab::Git::DiffTree.from_commit(init_commit)
+        return [diff_tree] + objects if diff_tree
+
+        objects
+      end
+
+      def validate_lfs_file_locks?
+        strong_memoize(:validate_lfs_file_locks) do
+          project.lfs_enabled? && project.any_lfs_file_locks?
+        end
+      end
+
+      def should_run_validations?
+        validations_for_path.present? || file_paths_validations.present?
+      end
+
+      def validate_path(path)
+        validations_for_path.each do |validation|
+          if error = validation.call(path)
+            raise ::Gitlab::GitAccess::ForbiddenError, error
+          end
+        end
+      end
+
+      # Method overwritten in EE to inject custom validations
+      def validations_for_path
+        []
+      end
+
+      def file_paths_validations
+        validate_lfs_file_locks? ? [lfs_file_locks_validation] : []
+      end
+
+      def validate_file_paths(file_paths)
+        logger.log_timed(LOG_MESSAGES[__method__]) do
+          file_paths_validations.each do |validation|
+            if error = validation.call(file_paths)
+              raise ::Gitlab::GitAccess::ForbiddenError, error
+            end
+          end
+        end
+      end
+
+      # rubocop: disable CodeReuse/ActiveRecord
+      def lfs_file_locks_validation
+        lambda do |paths|
+          lfs_lock = project.lfs_file_locks.where(path: paths).where.not(user_id: user_access.user.id).take
+
+          if lfs_lock
+            return "The path '#{lfs_lock.path}' is locked in Git LFS by #{lfs_lock.user.username}"
+          end
+        end
+      end
+      # rubocop: enable CodeReuse/ActiveRecord
+    end
+  end
+end
+
+Gitlab::Checks::DiffCheck.prepend_mod_with('Gitlab::Checks::DiffCheck')

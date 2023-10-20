@@ -1,0 +1,1546 @@
+# When adding a group as a code owner, make sure to invite the group to the
+# project here: https://gitlab.com/gitlab-org/gitlab/-/project_members
+# As described in https://docs.gitlab.com/ee/user/project/code_owners.html
+
+* @gitlab-org/maintainers/rails-backend @gitlab-org/maintainers/frontend @gitlab-org/maintainers/database @gl-quality/qe-maintainers @gl-quality/tooling-maintainers @gitlab-org/delivery @gitlab-org/maintainers/cicd-templates @nolith @gitlab-org/tw-leadership @gitlab-org/maintainers/kas-version-maintainers
+
+.gitlab/CODEOWNERS @gitlab-org/development-leaders @gitlab-org/tw-leadership
+
+## Allows release tooling to update the Gitaly Version
+GITALY_SERVER_VERSION @project_278964_bot6 @gitlab-org/maintainers/rails-backend @gitlab-org/delivery
+
+## Files that are excluded from required approval
+## These rules override the * rule above, so that changes to docs and templates
+## can be merged by any user who has maintainer rights, but is not included in
+## the * rule (usually technical writers).
+/.gitlab/issue_templates/*.md
+/.gitlab/merge_request_templates/*.md
+/doc/*.md
+/doc/**/*.md
+/doc/**/*.jpg
+/doc/**/*.png
+/data/deprecations/*.yml
+
+## Technical writing files that do not need `*` rule approval,
+## but still require an approval from a TW team DRI for each file.
+/data/deprecations/templates/ @marcel.amirault @sarahgerman @gitlab-org/tw-leadership
+.markdownlint.yml @marcel.amirault @eread @aqualls @gitlab-org/tw-leadership
+/doc/.markdownlint/ @marcel.amirault @eread @aqualls @gitlab-org/tw-leadership
+/doc/.vale/ @marcel.amirault @eread @aqualls @gitlab-org/tw-leadership
+/lib/tasks/gitlab/tw/codeowners.rake @aqualls @gitlab-org/tw-leadership
+/scripts/lint-doc.sh @marcel.amirault @eread @axil @sarahgerman @gitlab-org/tw-leadership
+/scripts/lint-docs-metadata.sh @marcel.amirault @eread @axil @sarahgerman @gitlab-org/tw-leadership
+
+^[Source code editing]
+.solargraph.yml.example @igor.drozdov
+
+^[Backend] @gitlab-org/maintainers/rails-backend
+*.rb
+*.rake
+
+^[Frontend] @gitlab-org/maintainers/frontend
+*.scss
+*.js
+/app/assets/
+/ee/app/assets/
+/spec/frontend/
+/ee/spec/frontend/
+/spec/frontend_integration/
+/ee/spec/frontend_integration/
+
+[Clickhouse] @gitlab-org/maintainers/clickhouse
+/db/click_house/
+/ee/db/click_house/
+/**/click(_|-)?house/
+
+## We list db/ subfolders explicitly as we don't want to match Clickhouse files
+[Database] @gitlab-org/maintainers/database
+/db/database_connections/
+/ee/db/database_connections/
+/db/docs/
+/ee/db/docs/
+/ee/db/embedding/
+/ee/db/geo/
+/ee/db/seeds/
+/db/gitlab_schemas/
+/ee/db/gitlab_schemas/
+/db/*migrate/
+/ee/db/*migrate/
+/db/schema_migrations/
+/ee/db/schema_migrations/
+# The following two lines only match db/ root files
+/db/*
+/ee/db/*
+/lib/gitlab/background_migration/
+/ee/lib/ee/gitlab/background_migration/
+/lib/gitlab/database/
+/lib/gitlab/sql/
+/app/finders/
+/ee/app/finders/
+/rubocop/rubocop-migrations.yml
+
+[Pipeline configuration] @gl-quality/eng-prod
+/.gitlab-ci.yml
+/.gitlab/ci/
+/.gitlab/ci/docs.gitlab-ci.yml @gl-quality/eng-prod @gl-docsteam
+/.gitlab/ci/frontend.gitlab-ci.yml @gl-quality/eng-prod @gitlab-org/maintainers/frontend
+/.gitlab/ci/package-and-test/ @gl-quality/eng-prod @gl-quality/qe-maintainers
+/.gitlab/ci/qa.gitlab-ci.yml @gl-quality/eng-prod @gl-quality/qe-maintainers
+/.gitlab/ci/qa-common/ @gl-quality/eng-prod @gl-quality/qe-maintainers
+/.gitlab/ci/releases.gitlab-ci.yml @gl-quality/eng-prod @gitlab-org/delivery
+/.gitlab/ci/reports.gitlab-ci.yml @gl-quality/eng-prod @gitlab-com/gl-security/appsec
+/.gitlab/ci/review-apps/qa.gitlab-ci.yml @gl-quality/eng-prod @gl-quality/qe-maintainers
+/.gitlab/ci/test-on-gdk/ @gl-quality/eng-prod @gl-quality/qe-maintainers
+/gems/gem.gitlab-ci.yml
+
+[Tooling] @gl-quality/eng-prod
+Dangerfile
+/danger/
+/tooling/danger/
+/scripts/
+/scripts/**/*.rb @gl-quality/eng-prod @gitlab-org/maintainers/rails-backend
+/scripts/**/glfm/**/* @gl-quality/eng-prod @gitlab-org/plan-stage/backend-engineers
+/scripts/**/*.js @gl-quality/eng-prod @gitlab-org/maintainers/frontend
+/scripts/frontend/ @gl-quality/eng-prod @gitlab-org/maintainers/frontend
+/scripts/remote_development/ @gitlab-org/maintainers/remote-development/backend
+/scripts/review_apps/seed-dast-test-data.sh @gl-quality/eng-prod @dappelt @ngeorge1
+/.codeclimate.yml
+/.dockerignore
+/.editorconfig
+/.gitpod.yml
+/.haml-lint_todo.yml
+/.haml-lint.yml
+/.nvmrc
+/.ruby-version
+/.tool-versions
+/lefthook.yml
+/tests.yml
+
+^[Backend Static Code Analysis] @gl-quality/eng-prod @dstull
+.rubocop*.yml
+.rubocop_todo/
+/gems/config/rubocop.yml
+/rubocop/
+/spec/rubocop/
+/spec/rubocop*
+
+^[End-to-end] @gl-quality
+/qa/
+
+^[LDAP] @dblessing @mkozono
+/ee/lib/ee/gitlab/auth/ldap/
+/lib/gitlab/auth/ldap/
+
+^[Project Alias] @patrickbajao
+/ee/app/models/project_alias.rb
+/ee/lib/api/project_aliases.rb
+
+^[Distribution] @gitlab-org/distribution
+/lib/support/
+
+# Secure & Threat Management ownership delineation
+# https://about.gitlab.com/handbook/engineering/development/threat-management/delineate-secure-threat-management.html#technical-boundaries
+^[Threat Insights backend] @gitlab-org/govern/threat-insights-backend-team
+/development/sec/cyclonedx_property_taxonomy.md
+/app/finders/security/
+/app/models/vulnerability.rb
+/app/presenters/projects/security/
+/spec/presenters/projects/security/
+/ee/app/finders/security/
+/ee/app/models/security/
+/ee/app/models/vulnerabilities/
+/ee/app/policies/vulnerabilities/
+/ee/app/policies/vulnerability*.rb
+/ee/lib/api/vulnerabilit*.rb
+/ee/spec/policies/vulnerabilities/
+/ee/spec/policies/vulnerability*.rb
+
+^[Threat Insights frontend] @gitlab-org/govern/threat-insights-frontend-team
+/ee/app/assets/javascripts/license_compliance/components/detected_licenses_table.vue
+/ee/spec/frontend/license_compliance/components/detected_licenses_table_spec.js
+
+^[Secure] @gitlab-org/secure/dynamic-analysis-be
+/ee/app/services/app_sec/dast/
+
+^[Security Policies frontend] @gitlab-org/govern/security-policies-frontend
+/ee/app/assets/javascripts/approvals/components/license_compliance/**
+/ee/app/assets/javascripts/approvals/stores/modules/license_compliance/**
+/ee/app/assets/javascripts/license_compliance/**
+/ee/app/assets/javascripts/pages/projects/licenses/**
+/ee/app/assets/javascripts/pages/projects/pipelines/licenses/**
+/ee/app/assets/javascripts/pages/projects/pipelines/show/license_report.js
+/ee/app/assets/javascripts/vue_merge_request_widget/extensions/license_compliance/**
+/ee/app/assets/javascripts/vue_shared/license_compliance/**
+/ee/app/views/projects/licenses/**
+/ee/spec/frontend/approvals/components/license_compliance/**
+/ee/spec/frontend/approvals/stores/modules/license_compliance/**
+/ee/spec/frontend/license_compliance/**
+/ee/spec/frontend/vue_merge_request_widget/extensions/license_compliance/**
+/ee/spec/frontend/vue_shared/license_compliance/**
+
+/ee/app/assets/javascripts/approvals/components/security_orchestration/**
+/ee/app/assets/javascripts/approvals/stores/modules/security_orchestration/**
+/ee/app/assets/javascripts/pages/groups/security/policies/**
+/ee/app/assets/javascripts/pages/projects/security/policies/**
+/ee/app/assets/javascripts/security_orchestration/**
+/ee/app/views/groups/security/policies
+/ee/app/views/projects/security/policies/**
+/ee/spec/frontend/approvals/components/security_orchestration/**
+/ee/spec/frontend/approvals/stores/modules/security_orchestration/**
+/ee/spec/frontend/security_orchestration/**
+/ee/spec/views/projects/security/policies/**
+
+^[Security Policies backend] @gitlab-org/govern/security-policies-backend
+/app/models/clusters/applications/cilium.rb
+/ee/app/controllers/groups/security/policies_controller.rb
+/ee/app/controllers/projects/security/policies_controller.rb
+/ee/app/graphql/mutations/concerns/mutations/finds_project_or_group_for_security_policies.rb
+/ee/app/graphql/mutations/security_policy/**
+/ee/app/graphql/resolvers/concerns/resolves_orchestration_policy.rb
+/ee/app/graphql/resolvers/security_orchestration/**
+/ee/app/graphql/types/security_orchestration/**
+/ee/app/helpers/ee/security_orchestration_helper.rb
+/ee/app/models/security/orchestration_policy_configuration.rb
+/ee/app/models/security/orchestration_policy_rule_schedule.rb
+/ee/app/services/security/orchestration/**
+/ee/app/services/security/security_orchestration_policies/**
+/ee/app/validators/json_schemas/security_orchestration_policy.json
+/ee/app/workers/concerns/update_orchestration_policy_configuration.rb
+/ee/app/workers/security/create_orchestration_policy_worker.rb
+/ee/app/workers/security/orchestration_policy_rule_schedule_namespace_worker.rb
+/ee/app/workers/security/orchestration_policy_rule_schedule_worker.rb
+/ee/lib/ee/gitlab/ci/pipeline/chain/validate/security_orchestration_policy.rb
+/ee/lib/gitlab/ci/config/security_orchestration_policies/**
+/ee/lib/gitlab/graphql/aggregations/security_orchestration_policies/**
+/ee/spec/controllers/groups/security/policies_controller_spec.rb
+/ee/spec/factories/security_orchestration_policy_configurations.rb
+/ee/spec/factories/security_orchestration_policy_rule_schedules.rb
+/ee/spec/factories/security/policies.rb
+/ee/spec/graphql/mutations/security_policy/**
+/ee/spec/graphql/resolvers/security_orchestration/**
+/ee/spec/graphql/types/security_orchestration/**
+/ee/spec/helpers/ee/security_orchestration_helper_spec.rb
+/ee/spec/lib/ee/gitlab/ci/pipeline/chain/validate/security_orchestration_policy_spec.rb
+/ee/spec/lib/gitlab/ci/config/security_orchestration_policies/**
+/ee/spec/lib/gitlab/graphql/aggregations/security_orchestration_policies/**
+/ee/spec/models/security/orchestration_policy_configuration_spec.rb
+/ee/spec/models/security/orchestration_policy_rule_schedule_spec.rb
+/ee/spec/requests/api/graphql/mutations/security_policy/**
+/ee/spec/requests/api/graphql/project/security_orchestration/**
+/ee/spec/requests/projects/security/policies_controller_spec.rb
+/ee/spec/services/security/orchestration/**
+/ee/spec/services/security/security_orchestration_policies/**
+/ee/spec/support/shared_contexts/graphql/resolvers/security_orchestration/**
+/ee/spec/views/projects/security/policies/index.html.haml_spec.rb
+/ee/spec/workers/concerns/update_orchestration_policy_configuration_spec.rb
+/ee/spec/workers/security/create_orchestration_policy_worker_spec.rb
+/ee/spec/workers/security/orchestration_policy_rule_schedule_namespace_worker_spec.rb
+/ee/spec/workers/security/orchestration_policy_rule_schedule_worker_spec.rb
+/lib/gitlab/ci/pipeline/chain/validate/security_orchestration_policy.rb
+/spec/models/clusters/applications/cilium_spec.rb
+
+/app/finders/security/license_compliance_jobs_finder.rb
+/ee/app/controllers/projects/licenses_controller.rb
+/ee/app/finders/software_license_policies_finder.rb
+/ee/app/models/sca/license_compliance.rb @gitlab-org/govern/security-policies-backend @gitlab-org/secure/composition-analysis-be
+/ee/app/models/sca/license_policy.rb
+/ee/app/models/software_license_policy.rb
+/ee/app/models/software_license.rb
+/ee/app/serializers/license_compliance/**
+/ee/app/serializers/license_entity.rb
+/ee/app/serializers/licenses_list_entity.rb
+/ee/app/serializers/licenses_list_serializer.rb
+/ee/app/serializers/security/license_policy_entity.rb
+/ee/app/services/ci/compare_license_scanning_reports_collapsed_service.rb
+/ee/app/services/ci/compare_license_scanning_reports_service.rb
+/ee/app/services/software_license_policies/**
+/ee/app/services/software_license_policies/update_service.rb
+/ee/app/workers/refresh_license_compliance_checks_worker.rb
+/ee/lib/api/managed_licenses.rb
+/ee/lib/ee/api/entities/managed_license.rb
+/ee/lib/gitlab/spdx/license.rb
+/ee/spec/factories/software_license_policy.rb
+/ee/spec/factories/software_license.rb
+/ee/spec/factories/spdx_license.rb
+/ee/spec/finders/software_license_policies_finder_spec.rb
+/ee/spec/lib/gitlab/ci/parsers/license_compliance/**
+/ee/spec/models/sca/license_compliance_spec.rb @gitlab-org/govern/security-policies-backend @gitlab-org/secure/composition-analysis-be
+/ee/spec/models/sca/license_policy_spec.rb
+/ee/spec/models/software_license_policy_spec.rb
+/ee/spec/models/software_license_spec.rb
+/ee/spec/requests/api/managed_licenses_spec.rb
+/ee/spec/serializers/license_compliance/**
+/ee/spec/services/ci/compare_license_scanning_reports_collapsed_service_spec.rb
+/ee/spec/services/ci/compare_license_scanning_reports_service_spec.rb
+/ee/spec/services/software_license_policies/**
+/spec/finders/security/license_compliance_jobs_finder_spec.rb
+
+^[Code Owners] @reprazent @kerrizor @garyh
+/ee/lib/gitlab/code_owners.rb
+/ee/lib/gitlab/code_owners/
+/ee/spec/lib/gitlab/code_owners/
+/doc/user/project/code_owners.md
+
+^[Merge Requests backend] @garyh @patrickbajao @marc_shaw @kerrizor
+/app/controllers/projects/merge_requests/
+/app/models/merge_request.rb @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/app/services/merge_requests/ @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/app/workers/merge_requests/ @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/app/workers/merge_request_mergeability_check_worker.rb @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/lib/gitlab/diff/ @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/lib/gitlab/discussions_diff/ @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/lib/gitlab/quick_actions/ @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+
+/ee/app/models/ee/merge_request.rb @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/ee/app/services/merge_requests/ @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/ee/app/workers/merge_requests/ @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+/ee/app/workers/merge_request_reset_approvals_worker.rb @garyh @patrickbajao @marc_shaw @kerrizor @dskim_gitlab
+
+^[Merge Requests frontend] @slashmanov @iamphill @thomasrandolph
+/app/assets/javascripts/diffs
+/app/assets/javascripts/batch_comments/
+/app/assets/javascripts/notes
+/app/assets/javascripts/merge_conflicts
+/app/assets/javascripts/mr_notes
+/app/assets/javascripts/issuable/popover
+/app/assets/javascripts/vue_merge_request_widget
+/app/assets/javascripts/merge_request.js
+/app/assets/javascripts/merge_request_tabs.js
+/app/assets/stylesheets/framework/diffs.scss
+/ee/app/assets/javascripts/diffs/
+/ee/app/assets/javascripts/vue_merge_request_widget
+/spec/frontend/diffs/
+/spec/frontend/batch_comments/
+
+^[Product Analytics] @gitlab-org/analytics-section/product-analytics/engineers/frontend
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/analytics_dashboard.vue
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/analytics_visualization_designer.vue
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/dashboards_list.vue
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/visualization_designer/selectors/product_analytics/
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/visualizations/column_chart.vue
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/visualizations/data_table.vue
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/visualizations/line_chart.vue
+/ee/app/assets/javascripts/analytics/analytics_dashboards/components/visualizations/single_stat.vue
+/ee/app/assets/javascripts/analytics/analytics_dashboards/data_sources/
+/ee/app/assets/javascripts/analytics/analytics_dashboards/index.js
+/ee/app/assets/javascripts/analytics/analytics_dashboards/router.js
+/ee/app/assets/javascripts/analytics/analytics_dashboards/constants.js
+/ee/app/assets/javascripts/analytics/analytics_dashboards/graphql/queries/get_all_product_analytics_dashboards.query.graphql
+/ee/app/assets/javascripts/analytics/analytics_dashboards/graphql/queries/get_product_analytics_dashboard.query.graphql
+/ee/app/assets/javascripts/analytics/analytics_dashboards/graphql/queries/get_all_product_analytics_visualizations.query.graphql
+/ee/app/assets/javascripts/vue_shared/components/customizable_dashboard/customizable_dashboard.vue
+/ee/app/assets/javascripts/vue_shared/components/customizable_dashboard/panels_base.vue
+/ee/app/assets/javascripts/product_analytics/
+
+^[Analytics Instrumentation] @gitlab-org/analytics-section/analytics-instrumentation/engineers
+/ee/lib/gitlab/usage_data_counters/
+/ee/lib/ee/gitlab/usage_data.rb
+/lib/gitlab/usage_data.rb
+/lib/gitlab/usage_data_counters/
+/lib/gitlab/usage/
+/ee/lib/ee/gitlab/usage_data_counters/
+/ee/lib/ee/gitlab/usage/
+/config/metrics/
+/ee/config/metrics/
+/app/workers/gitlab_service_ping_worker.rb
+/spec/workers/gitlab_service_ping_worker_spec.rb
+/ee/spec/lib/gitlab/usage_data_counters/
+/ee/spec/lib/ee/gitlab/usage_data_spec.rb
+/spec/lib/gitlab/usage_data_spec.rb
+/spec/lib/gitlab/usage_data_counters/
+/spec/lib/gitlab/usage/
+/ee/spec/lib/ee/gitlab/usage_data_counters/
+/ee/spec/lib/ee/gitlab/usage/
+/ee/spec/config/metrics/
+
+^[Growth Experiments] @gitlab-org/growth/experiment-devs
+/app/experiments/
+/spec/experiments/
+/config/initializers/gitlab_experiment.rb
+/config/feature_flags/experiment/
+/ee/config/feature_flags/experiment/
+/ee/lib/api/experiments.rb
+/ee/spec/requests/api/experiments_spec.rb
+/ee/lib/ee/api/entities/experiment.rb
+/ee/spec/lib/ee/api/entities/experiment_spec.rb
+
+^[Growth] @gitlab-org/growth/engineers
+/app/models/onboarding/
+/spec/models/onboarding/
+/app/services/onboarding/
+/spec/services/onboarding/
+/ee/app/components/namespaces/free_user_cap/
+/ee/spec/components/namespaces/free_user_cap/
+/ee/app/models/namespaces/free_user_cap/
+/ee/spec/models/namespaces/free_user_cap/
+/app/controllers/registrations_controller.rb
+/spec/controllers/registrations_controller_spec.rb
+/app/controllers/registrations/
+/spec/controllers/registrations/
+/app/controllers/confirmations_controller.rb
+/spec/controllers/confirmations_controller_spec.rb
+/ee/app/controllers/trial_registrations_controller.rb
+/ee/spec/controllers/trial_registrations_controller_spec.rb
+/ee/spec/requests/trial_registrations_controller_spec.rb
+/ee/app/controllers/registrations/
+/ee/spec/controllers/registrations/
+/ee/spec/requests/registrations/
+/ee/spec/features/registrations/saas/
+/ee/spec/support/helpers/saas_registration_helpers.rb
+/ee/spec/support/shared_contexts/saas_registration_settings_context.rb
+/ee/app/controllers/ee/registrations_controller.rb
+/ee/spec/controllers/ee/registrations_controller_spec.rb
+/ee/app/controllers/ee/registrations/
+/ee/app/controllers/ee/confirmations_controller.rb
+/ee/app/controllers/subscriptions_controller.rb
+/ee/spec/controllers/subscriptions_controller_spec.rb
+/ee/app/controllers/subscriptions/
+/ee/spec/controllers/subscriptions/
+/app/services/users/in_product_marketing_email_records.rb
+/spec/services/users/in_product_marketing_email_records_spec.rb
+/app/workers/namespaces/in_product_marketing_emails_worker.rb
+/spec/workers/namespaces/in_product_marketing_emails_worker_spec.rb
+/ee/app/workers/ee/namespaces/in_product_marketing_emails_worker.rb
+/ee/spec/workers/ee/namespaces/in_product_marketing_emails_worker_spec.rb
+/app/models/users/in_product_marketing_email.rb
+/spec/models/users/in_product_marketing_email_spec.rb
+/app/services/namespaces/in_product_marketing_emails_service.rb
+/spec/services/namespaces/in_product_marketing_emails_service_spec.rb
+/ee/app/services/ee/namespaces/in_product_marketing_emails_service.rb
+/ee/spec/services/namespaces/in_product_marketing_emails_service_spec.rb
+/app/workers/projects/record_target_platforms_worker.rb
+/spec/workers/projects/record_target_platforms_worker_spec.rb
+
+^[Legal] @gitlab-org/legal-reviewers
+/config/dependency_decisions.yml
+
+# https://gitlab.com/groups/gitlab-org/maintainers/gitlab-workhorse/-/group_members?with_inherited_permissions=exclude
+^[Workhorse] @gitlab-org/maintainers/gitlab-workhorse
+/workhorse/
+
+[Application Security] @gitlab-com/gl-security/appsec
+/app/assets/javascripts/lib/dompurify.js
+/app/assets/javascripts/gfm_auto_complete.js
+/ee/app/assets/javascripts/gfm_auto_complete.js
+/app/validators/addressable_url_validator.rb
+/app/validators/public_url_validator.rb
+/config/initializers/content_security_policy.rb
+/config/initializers/gitlab_http.rb
+/gems/gitlab-http/**/*.rb
+/lib/gitlab/content_security_policy/
+/lib/gitlab/http.rb
+/lib/gitlab/http_connection_adapter.rb
+/lib/gitlab/sanitizers
+/lib/gitlab/untrusted_regexp.rb
+/lib/gitlab/url_blocker.rb
+/lib/gitlab/url_blockers/
+/lib/gitlab/utils.rb
+/lib/gitlab/path_traversal.rb
+
+^[Gitaly] @proglottis @toon
+lib/gitlab/git_access.rb
+lib/gitlab/git_access_*.rb
+ee/lib/ee/gitlab/git_access.rb
+ee/lib/ee/gitlab/git_access_*.rb
+ee/lib/ee/gitlab/checks/**
+lib/gitlab/checks/**
+
+^[Documentation Directories] @gl-docsteam
+/doc/
+/data/deprecations/
+
+^[Documentation Pages]
+# This block is managed by the rake script at lib/tasks/gitlab/tw/codeowners.rake, manual updates will be overwritten!
+# Begin rake-managed-docs-block
+/doc/administration/analytics/ @lciutacu
+/doc/administration/application_settings_cache.md @jglassman1
+/doc/administration/audit_event_streaming/ @eread
+/doc/administration/audit_events.md @eread
+/doc/administration/audit_reports.md @eread
+/doc/administration/auditor_users.md @jglassman1
+/doc/administration/auth/ @jglassman1
+/doc/administration/backup_restore/ @axil
+/doc/administration/cicd.md @marcel.amirault
+/doc/administration/clusters/ @phillipwells
+/doc/administration/compliance.md @eread
+/doc/administration/configure.md @axil
+/doc/administration/consul.md @axil
+/doc/administration/credentials_inventory.md @jglassman1
+/doc/administration/custom_project_templates.md @msedlakjakubowski
+/doc/administration/diff_limits.md @msedlakjakubowski
+/doc/administration/docs_self_host.md @axil
+/doc/administration/encrypted_configuration.md @axil
+/doc/administration/environment_variables.md @axil
+/doc/administration/external_pipeline_validation.md @marcel.amirault
+/doc/administration/external_users.md @jglassman1
+/doc/administration/feature_flags.md @axil
+/doc/administration/file_hooks.md @eread @ashrafkhamis
+/doc/administration/geo/ @axil
+/doc/administration/geo_sites.md @axil
+/doc/administration/get_started.md @kpaizee
+/doc/administration/git_protocol.md @msedlakjakubowski
+/doc/administration/gitaly/ @eread
+/doc/administration/housekeeping.md @eread
+/doc/administration/inactive_project_deletion.md @eread
+/doc/administration/incoming_email.md @msedlakjakubowski
+/doc/administration/index.md @axil
+/doc/administration/instance_limits.md @axil
+/doc/administration/integration/ @msedlakjakubowski
+/doc/administration/integration/terminal.md @phillipwells
+/doc/administration/invalidate_markdown_cache.md @msedlakjakubowski
+/doc/administration/issue_closing_pattern.md @aqualls
+/doc/administration/job_artifacts.md @marcel.amirault
+/doc/administration/job_artifacts_troubleshooting.md @marcel.amirault
+/doc/administration/job_logs.md @fneill
+/doc/administration/labels.md @msedlakjakubowski
+/doc/administration/lfs/ @msedlakjakubowski
+/doc/administration/libravatar.md @axil
+/doc/administration/license.md @fneill
+/doc/administration/license_file.md @fneill
+/doc/administration/load_balancer.md @axil
+/doc/administration/logs/ @axil
+/doc/administration/maintenance_mode/ @axil
+/doc/administration/merge_request_diffs.md @msedlakjakubowski
+/doc/administration/merge_requests_approvals.md @msedlakjakubowski
+/doc/administration/moderate_users.md @jglassman1
+/doc/administration/monitoring/github_imports.md @eread @ashrafkhamis
+/doc/administration/monitoring/ip_allowlist.md @jglassman1
+/doc/administration/monitoring/performance/ @jglassman1
+/doc/administration/monitoring/prometheus/gitlab_exporter.md @jglassman1
+/doc/administration/monitoring/prometheus/index.md @axil
+/doc/administration/monitoring/prometheus/pgbouncer_exporter.md @aqualls
+/doc/administration/monitoring/prometheus/postgres_exporter.md @aqualls
+/doc/administration/monitoring/prometheus/registry_exporter.md @phillipwells
+/doc/administration/monitoring/prometheus/web_exporter.md @jglassman1
+/doc/administration/nfs.md @axil
+/doc/administration/object_storage.md @axil
+/doc/administration/operations/ @axil
+/doc/administration/operations/fast_ssh_key_lookup.md @msedlakjakubowski
+/doc/administration/operations/gitlab_sshd.md @msedlakjakubowski
+/doc/administration/operations/moving_repositories.md @eread
+/doc/administration/package_information/ @axil
+/doc/administration/packages/ @marcel.amirault
+/doc/administration/packages/index.md @phillipwells
+/doc/administration/polling.md @axil
+/doc/administration/postgresql/ @aqualls
+/doc/administration/postgresql/multiple_databases.md @lciutacu
+/doc/administration/raketasks/ @axil
+/doc/administration/raketasks/ldap.md @jglassman1
+/doc/administration/raketasks/praefect.md @eread
+/doc/administration/read_only_gitlab.md @axil
+/doc/administration/redis/ @axil
+/doc/administration/reference_architectures/ @axil
+/doc/administration/reply_by_email_postfix_setup.md @axil
+/doc/administration/reporting/ @phillipwells
+/doc/administration/reporting/spamcheck.md @axil
+/doc/administration/repository_checks.md @eread
+/doc/administration/repository_storage_paths.md @eread
+/doc/administration/restart_gitlab.md @axil
+/doc/administration/review_abuse_reports.md @phillipwells
+/doc/administration/review_spam_logs.md @phillipwells
+/doc/administration/server_hooks.md @eread
+/doc/administration/settings/account_and_limit_settings.md @msedlakjakubowski
+/doc/administration/settings/continuous_integration.md @marcel.amirault
+/doc/administration/settings/deprecated_api_rate_limits.md @msedlakjakubowski
+/doc/administration/settings/email.md @msedlakjakubowski
+/doc/administration/settings/external_authorization.md @jglassman1
+/doc/administration/settings/files_api_rate_limits.md @msedlakjakubowski
+/doc/administration/settings/git_lfs_rate_limits.md @msedlakjakubowski
+/doc/administration/settings/gitaly_timeouts.md @eread
+/doc/administration/settings/import_and_export_settings.md @eread @ashrafkhamis
+/doc/administration/settings/import_export_rate_limits.md @eread @ashrafkhamis
+/doc/administration/settings/instance_template_repository.md @msedlakjakubowski
+/doc/administration/settings/jira_cloud_app.md @eread @ashrafkhamis
+/doc/administration/settings/package_registry_rate_limits.md @phillipwells
+/doc/administration/settings/project_integration_management.md @eread @ashrafkhamis
+/doc/administration/settings/push_event_activities_limit.md @msedlakjakubowski
+/doc/administration/settings/rate_limit_on_issues_creation.md @msedlakjakubowski
+/doc/administration/settings/rate_limit_on_notes_creation.md @msedlakjakubowski
+/doc/administration/settings/rate_limit_on_pipelines_creation.md @marcel.amirault
+/doc/administration/settings/rate_limit_on_projects_api.md @lciutacu
+/doc/administration/settings/rate_limit_on_users_api.md @jglassman1
+/doc/administration/settings/rate_limits_on_git_ssh_operations.md @msedlakjakubowski
+/doc/administration/settings/scim_setup.md @jglassman1
+/doc/administration/settings/security_and_compliance.md @rdickenson
+/doc/administration/settings/slack_app.md @eread @ashrafkhamis
+/doc/administration/settings/terraform_limits.md @phillipwells
+/doc/administration/settings/third_party_offers.md @lciutacu
+/doc/administration/settings/usage_statistics.md @lciutacu
+/doc/administration/settings/visibility_and_access_controls.md @msedlakjakubowski
+/doc/administration/sidekiq/ @axil
+/doc/administration/sidekiq/sidekiq_memory_killer.md @jglassman1
+/doc/administration/silent_mode/ @axil
+/doc/administration/smime_signing_email.md @axil
+/doc/administration/snippets/ @msedlakjakubowski
+/doc/administration/static_objects_external_storage.md @ashrafkhamis
+/doc/administration/system_hooks.md @eread @ashrafkhamis
+/doc/administration/terraform_state.md @phillipwells
+/doc/administration/timezone.md @axil
+/doc/administration/troubleshooting/ @axil
+/doc/administration/troubleshooting/postgresql.md @aqualls
+/doc/administration/uploads.md @axil
+/doc/administration/user_settings.md @jglassman1
+/doc/api/access_requests.md @jglassman1
+/doc/api/admin_sidekiq_queues.md @axil
+/doc/api/api_resources.md @eread @ashrafkhamis
+/doc/api/appearance.md @jglassman1
+/doc/api/applications.md @jglassman1
+/doc/api/audit_events.md @eread
+/doc/api/avatar.md @jglassman1
+/doc/api/boards.md @msedlakjakubowski
+/doc/api/branches.md @msedlakjakubowski
+/doc/api/bulk_imports.md @eread @ashrafkhamis
+/doc/api/cluster_agents.md @phillipwells
+/doc/api/code_suggestions.md @jglassman1
+/doc/api/commits.md @msedlakjakubowski
+/doc/api/container_registry.md @marcel.amirault
+/doc/api/custom_attributes.md @msedlakjakubowski
+/doc/api/database_migrations.md @aqualls
+/doc/api/dependencies.md @rdickenson
+/doc/api/dependency_list_export.md @rdickenson
+/doc/api/dependency_proxy.md @marcel.amirault
+/doc/api/deploy_keys.md @phillipwells
+/doc/api/deploy_tokens.md @phillipwells
+/doc/api/deployments.md @phillipwells
+/doc/api/discussions.md @msedlakjakubowski
+/doc/api/dora/ @lciutacu
+/doc/api/draft_notes.md @aqualls
+/doc/api/emoji_reactions.md @msedlakjakubowski
+/doc/api/environments.md @phillipwells
+/doc/api/epic_issues.md @msedlakjakubowski
+/doc/api/epic_links.md @msedlakjakubowski
+/doc/api/epics.md @msedlakjakubowski
+/doc/api/events.md @eread
+/doc/api/feature_flag_user_lists.md @phillipwells
+/doc/api/feature_flags.md @phillipwells
+/doc/api/features.md @phillipwells
+/doc/api/freeze_periods.md @phillipwells
+/doc/api/geo_nodes.md @axil
+/doc/api/geo_sites.md @axil
+/doc/api/graphql/audit_report.md @eread
+/doc/api/graphql/branch_rules.md @msedlakjakubowski
+/doc/api/graphql/custom_emoji.md @msedlakjakubowski
+/doc/api/graphql/getting_started.md @eread @ashrafkhamis
+/doc/api/graphql/index.md @eread @ashrafkhamis
+/doc/api/graphql/reference/ @eread @ashrafkhamis
+/doc/api/graphql/removed_items.md @eread @ashrafkhamis
+/doc/api/graphql/sample_issue_boards.md @msedlakjakubowski
+/doc/api/graphql/users_example.md @jglassman1
+/doc/api/group_access_tokens.md @jglassman1
+/doc/api/group_activity_analytics.md @lciutacu
+/doc/api/group_badges.md @lciutacu
+/doc/api/group_boards.md @msedlakjakubowski
+/doc/api/group_clusters.md @phillipwells
+/doc/api/group_epic_boards.md @msedlakjakubowski
+/doc/api/group_import_export.md @eread @ashrafkhamis
+/doc/api/group_iterations.md @msedlakjakubowski
+/doc/api/group_labels.md @msedlakjakubowski
+/doc/api/group_level_variables.md @marcel.amirault
+/doc/api/group_milestones.md @msedlakjakubowski
+/doc/api/group_protected_branches.md @msedlakjakubowski
+/doc/api/group_protected_environments.md @phillipwells
+/doc/api/group_relations_export.md @eread @ashrafkhamis
+/doc/api/group_releases.md @phillipwells
+/doc/api/group_repository_storage_moves.md @ashrafkhamis
+/doc/api/group_ssh_certificates.md @msedlakjakubowski
+/doc/api/groups.md @lciutacu
+/doc/api/import.md @eread @ashrafkhamis
+/doc/api/index.md @eread @ashrafkhamis
+/doc/api/instance_clusters.md @phillipwells
+/doc/api/instance_level_ci_variables.md @marcel.amirault
+/doc/api/integrations.md @eread @ashrafkhamis
+/doc/api/issue_links.md @msedlakjakubowski
+/doc/api/issues.md @msedlakjakubowski
+/doc/api/issues_statistics.md @msedlakjakubowski
+/doc/api/iterations.md @msedlakjakubowski
+/doc/api/job_artifacts.md @marcel.amirault
+/doc/api/jobs.md @marcel.amirault
+/doc/api/keys.md @msedlakjakubowski
+/doc/api/labels.md @msedlakjakubowski
+/doc/api/license.md @fneill
+/doc/api/linked_epics.md @msedlakjakubowski
+/doc/api/lint.md @marcel.amirault
+/doc/api/markdown.md @msedlakjakubowski
+/doc/api/member_roles.md @jglassman1
+/doc/api/members.md @jglassman1
+/doc/api/merge_request_approvals.md @msedlakjakubowski
+/doc/api/merge_request_context_commits.md @aqualls
+/doc/api/merge_requests.md @aqualls
+/doc/api/merge_trains.md @marcel.amirault
+/doc/api/metadata.md @phillipwells
+/doc/api/milestones.md @msedlakjakubowski
+/doc/api/namespaces.md @jglassman1
+/doc/api/notes.md @msedlakjakubowski
+/doc/api/notification_settings.md @msedlakjakubowski
+/doc/api/oauth2.md @jglassman1
+/doc/api/openapi/ @eread @ashrafkhamis
+/doc/api/packages.md @phillipwells
+/doc/api/packages/ @phillipwells
+/doc/api/personal_access_tokens.md @eread
+/doc/api/pipeline_schedules.md @marcel.amirault
+/doc/api/pipeline_triggers.md @marcel.amirault
+/doc/api/pipelines.md @marcel.amirault
+/doc/api/plan_limits.md @jglassman1
+/doc/api/product_analytics.md @lciutacu
+/doc/api/project_access_tokens.md @jglassman1
+/doc/api/project_aliases.md @msedlakjakubowski
+/doc/api/project_badges.md @msedlakjakubowski
+/doc/api/project_clusters.md @phillipwells
+/doc/api/project_import_export.md @eread @ashrafkhamis
+/doc/api/project_job_token_scopes.md @marcel.amirault
+/doc/api/project_level_variables.md @marcel.amirault
+/doc/api/project_relations_export.md @eread @ashrafkhamis
+/doc/api/project_repository_storage_moves.md @eread
+/doc/api/project_snippets.md @msedlakjakubowski
+/doc/api/project_statistics.md @msedlakjakubowski
+/doc/api/project_templates.md @msedlakjakubowski
+/doc/api/project_vulnerabilities.md @rdickenson
+/doc/api/projects.md @lciutacu
+/doc/api/protected_branches.md @msedlakjakubowski
+/doc/api/protected_environments.md @phillipwells
+/doc/api/protected_tags.md @msedlakjakubowski
+/doc/api/releases/ @phillipwells
+/doc/api/remote_mirrors.md @msedlakjakubowski
+/doc/api/repositories.md @msedlakjakubowski
+/doc/api/repository_files.md @msedlakjakubowski
+/doc/api/repository_submodules.md @msedlakjakubowski
+/doc/api/resource_groups.md @phillipwells
+/doc/api/resource_iteration_events.md @msedlakjakubowski
+/doc/api/resource_label_events.md @eread
+/doc/api/resource_milestone_events.md @msedlakjakubowski
+/doc/api/resource_state_events.md @msedlakjakubowski
+/doc/api/resource_weight_events.md @msedlakjakubowski
+/doc/api/rest/ @eread @ashrafkhamis
+/doc/api/runners.md @fneill
+/doc/api/saml.md @jglassman1
+/doc/api/scim.md @jglassman1
+/doc/api/search.md @ashrafkhamis
+/doc/api/search_admin.md @ashrafkhamis
+/doc/api/secure_files.md @marcel.amirault
+/doc/api/settings.md @jglassman1
+/doc/api/sidekiq_metrics.md @axil
+/doc/api/snippet_repository_storage_moves.md @msedlakjakubowski
+/doc/api/snippets.md @msedlakjakubowski
+/doc/api/statistics.md @jglassman1
+/doc/api/status_checks.md @eread
+/doc/api/suggestions.md @msedlakjakubowski
+/doc/api/system_hooks.md @eread @ashrafkhamis
+/doc/api/tags.md @msedlakjakubowski
+/doc/api/templates/dockerfiles.md @msedlakjakubowski
+/doc/api/templates/gitignores.md @msedlakjakubowski
+/doc/api/templates/gitlab_ci_ymls.md @marcel.amirault
+/doc/api/templates/licenses.md @rdickenson
+/doc/api/todos.md @msedlakjakubowski
+/doc/api/topics.md @lciutacu
+/doc/api/usage_data.md @lciutacu
+/doc/api/users.md @jglassman1
+/doc/api/version.md @phillipwells
+/doc/api/visual_review_discussions.md @marcel.amirault
+/doc/api/vulnerabilities.md @rdickenson
+/doc/api/vulnerability_exports.md @rdickenson
+/doc/api/vulnerability_findings.md @rdickenson
+/doc/architecture/blueprints/cells/ @lciutacu
+/doc/architecture/blueprints/ci_builds_runner_fleet_metrics/ @fneill
+/doc/architecture/blueprints/database/scalability/patterns/ @aqualls
+/doc/architecture/blueprints/database_scaling/ @aqualls
+/doc/architecture/blueprints/google_artifact_registry_integration/ @marcel.amirault
+/doc/architecture/blueprints/organization/ @lciutacu
+/doc/ci/ @marcel.amirault
+/doc/ci/chatops/ @phillipwells
+/doc/ci/cloud_deployment/ @phillipwells
+/doc/ci/docker/using_docker_images.md @fneill
+/doc/ci/environments/ @phillipwells
+/doc/ci/examples/deployment/ @phillipwells
+/doc/ci/examples/semantic-release.md @phillipwells
+/doc/ci/interactive_web_terminal/ @fneill
+/doc/ci/resource_groups/ @phillipwells
+/doc/ci/runners/ @fneill
+/doc/ci/services/ @fneill
+/doc/ci/test_cases/ @msedlakjakubowski
+/doc/ci/testing/code_quality.md @rdickenson
+/doc/development/activitypub/ @msedlakjakubowski
+/doc/development/advanced_search.md @ashrafkhamis
+/doc/development/ai_features/ @sselhorn
+/doc/development/application_limits.md @axil
+/doc/development/audit_event_guide/ @eread
+/doc/development/auto_devops.md @phillipwells
+/doc/development/avoiding_required_stops.md @axil
+/doc/development/backend/create_source_code_be/ @msedlakjakubowski
+/doc/development/build_test_package.md @axil
+/doc/development/bulk_import.md @eread @ashrafkhamis
+/doc/development/cached_queries.md @jglassman1
+/doc/development/cascading_settings.md @jglassman1
+/doc/development/cells/ @lciutacu
+/doc/development/chatops_on_gitlabcom.md @phillipwells
+/doc/development/cicd/ @marcel.amirault
+/doc/development/cloud_connector/ @jglassman1
+/doc/development/code_intelligence/ @aqualls
+/doc/development/code_owners/ @msedlakjakubowski
+/doc/development/code_suggestions/ @jglassman1
+/doc/development/contributing/verify/ @marcel.amirault
+/doc/development/database/ @aqualls
+/doc/development/database/filtering_by_label.md @msedlakjakubowski
+/doc/development/database/multiple_databases.md @lciutacu
+/doc/development/database_review.md @aqualls
+/doc/development/developing_with_solargraph.md @msedlakjakubowski
+/doc/development/distribution/ @axil
+/doc/development/documentation/ @sselhorn
+/doc/development/export_csv.md @eread @ashrafkhamis
+/doc/development/fe_guide/customizable_dashboards.md @lciutacu
+/doc/development/fe_guide/merge_request_widget_extensions.md @aqualls
+/doc/development/fe_guide/onboarding_course/ @sselhorn
+/doc/development/fe_guide/source_editor.md @msedlakjakubowski
+/doc/development/fe_guide/style/ @aqualls
+/doc/development/fe_guide/view_component.md @sselhorn
+/doc/development/feature_categorization/ @sselhorn
+/doc/development/fips_compliance.md @msedlakjakubowski
+/doc/development/geo.md @axil
+/doc/development/geo/ @axil
+/doc/development/git_object_deduplication.md @eread
+/doc/development/gitaly.md @eread
+/doc/development/gitlab_flavored_markdown/ @ashrafkhamis
+/doc/development/gitlab_shell/ @msedlakjakubowski
+/doc/development/graphql_guide/ @eread @ashrafkhamis
+/doc/development/graphql_guide/batchloader.md @aqualls
+/doc/development/i18n/ @eread @ashrafkhamis
+/doc/development/identity_verification.md @phillipwells
+/doc/development/image_scaling.md @lciutacu
+/doc/development/import_export.md @eread @ashrafkhamis
+/doc/development/integrations/ @eread @ashrafkhamis
+/doc/development/integrations/secure.md @rdickenson
+/doc/development/integrations/secure_partner_integration.md @rdickenson
+/doc/development/internal_analytics/ @lciutacu
+/doc/development/internal_api/ @msedlakjakubowski
+/doc/development/issuable-like-models.md @msedlakjakubowski
+/doc/development/issue_types.md @msedlakjakubowski
+/doc/development/kubernetes.md @phillipwells
+/doc/development/lfs.md @msedlakjakubowski
+/doc/development/maintenance_mode.md @axil
+/doc/development/merge_request_concepts/ @aqualls
+/doc/development/merge_request_concepts/rate_limits.md @msedlakjakubowski
+/doc/development/migration_style_guide.md @aqualls
+/doc/development/navigation_sidebar.md @sselhorn
+/doc/development/omnibus.md @axil
+/doc/development/organization/ @lciutacu
+/doc/development/packages/ @phillipwells
+/doc/development/packages/cleanup_policies.md @marcel.amirault
+/doc/development/packages/dependency_proxy.md @marcel.amirault
+/doc/development/packages/harbor_registry_development.md @marcel.amirault
+/doc/development/permissions.md @jglassman1
+/doc/development/permissions/ @jglassman1
+/doc/development/policies.md @jglassman1
+/doc/development/project_templates.md @msedlakjakubowski
+/doc/development/project_templates/ @msedlakjakubowski
+/doc/development/rails_endpoints/ @msedlakjakubowski
+/doc/development/real_time.md @jglassman1
+/doc/development/search/ @ashrafkhamis
+/doc/development/sec/ @rdickenson
+/doc/development/spam_protection_and_captcha/ @phillipwells
+/doc/development/sql.md @aqualls
+/doc/development/value_stream_analytics.md @lciutacu
+/doc/development/value_stream_analytics/ @lciutacu
+/doc/development/work_items.md @msedlakjakubowski
+/doc/development/work_items_widgets.md @msedlakjakubowski
+/doc/development/workhorse/ @msedlakjakubowski
+/doc/downgrade_ee_to_ce/ @axil
+/doc/drawers/ @ashrafkhamis
+/doc/editor_extensions/ @aqualls
+/doc/gitlab-basics/ @msedlakjakubowski
+/doc/install/ @axil
+/doc/install/postgresql_extensions.md @aqualls
+/doc/integration/ @jglassman1
+/doc/integration/advanced_search/ @ashrafkhamis
+/doc/integration/akismet.md @phillipwells
+/doc/integration/arkose.md @phillipwells
+/doc/integration/datadog.md @eread @ashrafkhamis
+/doc/integration/external-issue-tracker.md @eread @ashrafkhamis
+/doc/integration/gitpod.md @ashrafkhamis
+/doc/integration/gmail_action_buttons_for_gitlab.md @eread @ashrafkhamis
+/doc/integration/index.md @eread @ashrafkhamis
+/doc/integration/jenkins.md @eread @ashrafkhamis
+/doc/integration/jira/ @eread @ashrafkhamis
+/doc/integration/mattermost/ @axil
+/doc/integration/partner_marketplace.md @fneill
+/doc/integration/recaptcha.md @phillipwells
+/doc/integration/sourcegraph.md @msedlakjakubowski
+/doc/integration/trello_power_up.md @eread @ashrafkhamis
+/doc/integration/vault.md @phillipwells
+/doc/operations/ @phillipwells
+/doc/policy/ @axil
+/doc/raketasks/ @axil
+/doc/raketasks/spdx.md @rdickenson
+/doc/raketasks/x509_signatures.md @msedlakjakubowski
+/doc/security/ @jglassman1
+/doc/security/email_verification.md @phillipwells
+/doc/security/identity_verification.md @phillipwells
+/doc/subscriptions/ @fneill
+/doc/topics/autodevops/ @phillipwells
+/doc/topics/data_seeder.md @sselhorn
+/doc/topics/git/ @msedlakjakubowski
+/doc/topics/offline/ @axil
+/doc/topics/plan_and_track.md @msedlakjakubowski
+/doc/tutorials/ @kpaizee
+/doc/tutorials/boards_for_teams/ @msedlakjakubowski
+/doc/tutorials/compliance_pipeline/ @eread
+/doc/tutorials/configure_gitlab_runner_to_use_gke/ @fneill
+/doc/tutorials/container_scanning/ @rdickenson
+/doc/tutorials/convert_personal_namespace_to_group/ @lciutacu
+/doc/tutorials/create_register_first_runner/ @fneill
+/doc/tutorials/dependency_scanning.md @rdickenson
+/doc/tutorials/export_sbom.md @rdickenson
+/doc/tutorials/fuzz_testing/ @rdickenson
+/doc/tutorials/install_gitlab_single_node/ @axil
+/doc/tutorials/issue_triage/ @msedlakjakubowski
+/doc/tutorials/move_personal_project_to_group/ @lciutacu
+/doc/tutorials/protected_workflow/ @aqualls
+/doc/tutorials/scan_execution_policy/ @rdickenson
+/doc/tutorials/scan_result_policy/ @rdickenson
+/doc/tutorials/update_commit_messages/ @msedlakjakubowski
+/doc/tutorials/website_project_with_analytics/ @lciutacu
+/doc/update/ @axil
+/doc/update/background_migrations.md @aqualls
+/doc/user/ai_features.md @sselhorn
+/doc/user/analytics/ @lciutacu
+/doc/user/analytics/ci_cd_analytics.md @phillipwells
+/doc/user/application_security/ @rdickenson
+/doc/user/asciidoc.md @msedlakjakubowski
+/doc/user/clusters/ @phillipwells
+/doc/user/compliance/ @rdickenson
+/doc/user/compliance/compliance_center/ @eread
+/doc/user/compliance/index.md @eread
+/doc/user/custom_roles.md @jglassman1
+/doc/user/discussions/ @aqualls
+/doc/user/emoji_reactions.md @msedlakjakubowski
+/doc/user/enterprise_user/ @jglassman1
+/doc/user/feature_flags.md @sselhorn
+/doc/user/gitlab_duo_chat.md @sselhorn
+/doc/user/group/ @lciutacu
+/doc/user/group/clusters/ @phillipwells
+/doc/user/group/compliance_frameworks.md @eread
+/doc/user/group/custom_project_templates.md @msedlakjakubowski
+/doc/user/group/epics/ @msedlakjakubowski
+/doc/user/group/import/ @eread @ashrafkhamis
+/doc/user/group/iterations/ @msedlakjakubowski
+/doc/user/group/moderate_users.md @phillipwells
+/doc/user/group/planning_hierarchy/ @msedlakjakubowski
+/doc/user/group/reporting/ @phillipwells
+/doc/user/group/repositories_analytics/ @marcel.amirault
+/doc/user/group/roadmap/ @msedlakjakubowski
+/doc/user/group/saml_sso/ @jglassman1
+/doc/user/group/settings/ @jglassman1
+/doc/user/infrastructure/ @phillipwells
+/doc/user/infrastructure/clusters/manage/management_project_applications/ @phillipwells
+/doc/user/infrastructure/clusters/manage/management_project_applications/runner.md @fneill
+/doc/user/markdown.md @msedlakjakubowski
+/doc/user/namespace/ @lciutacu
+/doc/user/okrs.md @msedlakjakubowski
+/doc/user/operations_dashboard/ @phillipwells
+/doc/user/organization/ @lciutacu
+/doc/user/packages/ @phillipwells
+/doc/user/packages/container_registry/ @marcel.amirault
+/doc/user/packages/dependency_proxy/ @marcel.amirault
+/doc/user/packages/harbor_container_registry/ @marcel.amirault
+/doc/user/permissions.md @jglassman1
+/doc/user/product_analytics/ @lciutacu
+/doc/user/profile/account/ @jglassman1
+/doc/user/profile/achievements.md @lciutacu
+/doc/user/profile/comment_templates.md @aqualls
+/doc/user/profile/contributions_calendar.md @lciutacu
+/doc/user/profile/index.md @jglassman1
+/doc/user/profile/notifications.md @msedlakjakubowski
+/doc/user/profile/personal_access_tokens.md @jglassman1
+/doc/user/profile/service_accounts.md @jglassman1
+/doc/user/profile/user_passwords.md @jglassman1
+/doc/user/project/ @msedlakjakubowski
+/doc/user/project/badges.md @lciutacu
+/doc/user/project/clusters/ @phillipwells
+/doc/user/project/code_intelligence.md @aqualls
+/doc/user/project/deploy_boards.md @phillipwells
+/doc/user/project/deploy_keys/ @phillipwells
+/doc/user/project/deploy_tokens/ @phillipwells
+/doc/user/project/import/ @eread @ashrafkhamis
+/doc/user/project/import/jira.md @msedlakjakubowski
+/doc/user/project/index.md @lciutacu
+/doc/user/project/insights/ @lciutacu
+/doc/user/project/integrations/ @eread @ashrafkhamis
+/doc/user/project/issues/csv_import.md @eread @ashrafkhamis
+/doc/user/project/members/ @lciutacu
+/doc/user/project/merge_requests/ @aqualls
+/doc/user/project/merge_requests/approvals/ @msedlakjakubowski
+/doc/user/project/merge_requests/cherry_pick_changes.md @msedlakjakubowski
+/doc/user/project/merge_requests/csv_export.md @eread
+/doc/user/project/merge_requests/methods/ @msedlakjakubowski
+/doc/user/project/merge_requests/reviews/data_usage.md @sselhorn
+/doc/user/project/merge_requests/squash_and_merge.md @msedlakjakubowski
+/doc/user/project/merge_requests/status_checks.md @eread
+/doc/user/project/organize_work_with_projects.md @lciutacu
+/doc/user/project/releases/ @phillipwells
+/doc/user/project/releases/release_evidence.md @eread
+/doc/user/project/remote_development/ @ashrafkhamis
+/doc/user/project/repository/code_suggestions/ @jglassman1
+/doc/user/project/repository/file_finder.md @ashrafkhamis
+/doc/user/project/repository/monorepos/ @eread
+/doc/user/project/repository/web_editor.md @ashrafkhamis
+/doc/user/project/settings/import_export.md @eread @ashrafkhamis
+/doc/user/project/settings/import_export_troubleshooting.md @eread @ashrafkhamis
+/doc/user/project/settings/index.md @lciutacu
+/doc/user/project/settings/project_access_tokens.md @jglassman1
+/doc/user/project/web_ide/ @ashrafkhamis
+/doc/user/project/working_with_projects.md @lciutacu
+/doc/user/public_access.md @lciutacu
+/doc/user/report_abuse.md @phillipwells
+/doc/user/reserved_names.md @lciutacu
+/doc/user/search/ @ashrafkhamis
+/doc/user/search/command_palette.md @sselhorn
+/doc/user/snippets.md @msedlakjakubowski
+/doc/user/ssh.md @jglassman1
+/doc/user/storage_management_automation.md @fneill
+/doc/user/tasks.md @msedlakjakubowski
+/doc/user/todos.md @msedlakjakubowski
+/doc/user/usage_quotas.md @fneill
+/doc/user/workspace/ @ashrafkhamis
+# End rake-managed-docs-block
+
+[Authentication] @gitlab-org/govern/authentication/approvers
+/app/assets/javascripts/access_tokens/
+/app/assets/javascripts/alerts_settings/graphql/mutations/reset_http_token.mutation.graphql
+/app/assets/javascripts/authentication/
+/app/assets/javascripts/ide/components/shared/tokened_input.vue
+/app/assets/javascripts/packages_and_registries/package_registry/components/list/tokens/
+/app/assets/javascripts/pages/admin/impersonation_tokens/
+/app/assets/javascripts/pages/groups/settings/access_tokens/
+/app/assets/javascripts/pages/ldap/
+/app/assets/javascripts/pages/oauth/
+/app/assets/javascripts/pages/omniauth_callbacks/
+/app/assets/javascripts/pages/profiles/password_prompt/
+/app/assets/javascripts/pages/profiles/personal_access_tokens/
+/app/assets/javascripts/pages/profiles/two_factor_auths/
+/app/assets/javascripts/pages/projects/settings/access_tokens/
+/app/assets/javascripts/pages/sessions/new/oauth_remember_me.js
+/app/assets/javascripts/projects/settings/topics/components/
+/app/assets/javascripts/related_issues/components/issue_token.vue
+/app/assets/stylesheets/page_bundles/profile_two_factor_auth.scss
+/app/controllers/admin/impersonation_tokens_controller.rb
+/app/controllers/concerns/access_tokens_actions.rb
+/app/controllers/concerns/authenticates_with_two_factor.rb
+/app/controllers/concerns/authenticates_with_two_factor_for_admin_mode.rb
+/app/controllers/concerns/enforces_admin_authentication.rb
+/app/controllers/concerns/enforces_two_factor_authentication.rb
+/app/controllers/concerns/oauth_applications.rb
+/app/controllers/concerns/project_unauthorized.rb
+/app/models/concerns/require_email_verification.rb
+/app/controllers/concerns/sessionless_authentication.rb
+/app/controllers/concerns/snippet_authorizations.rb
+/app/controllers/concerns/verifies_with_email.rb
+/app/controllers/concerns/workhorse_authorization.rb
+/app/controllers/groups/settings/access_tokens_controller.rb
+/app/controllers/ldap/
+/app/controllers/oauth/
+/app/controllers/omniauth_callbacks_controller.rb
+/app/controllers/passwords_controller.rb
+/app/controllers/profiles/passwords_controller.rb
+/app/controllers/profiles/personal_access_tokens_controller.rb
+/app/controllers/profiles/two_factor_auths_controller.rb
+/app/controllers/profiles/webauthn_registrations_controller.rb
+/app/controllers/projects/settings/access_tokens_controller.rb
+/app/controllers/sessions_controller.rb
+/app/finders/groups/projects_requiring_authorizations_refresh/
+/app/finders/personal_access_tokens_finder.rb
+/app/helpers/access_tokens_helper.rb
+/app/helpers/auth_helper.rb
+/app/models/authentication_event.rb
+/app/models/concerns/admin_changed_password_notifier.rb
+/app/models/concerns/mirror_authentication.rb
+/app/models/concerns/select_for_project_authorization.rb
+/app/models/concerns/token_authenticatable.rb
+/app/models/concerns/token_authenticatable_strategies/
+/app/models/oauth_access_grant.rb
+/app/models/oauth_access_token.rb
+/app/models/personal_access_token.rb
+/app/models/project_authorization.rb
+/app/models/token_with_iv.rb
+/app/models/webauthn_registration.rb
+/app/policies/personal_access_token_policy.rb
+/app/serializers/access_token_entity_base.rb
+/app/serializers/group_access_token_entity.rb
+/app/serializers/group_access_token_serializer.rb
+/app/serializers/impersonation_access_token_entity.rb
+/app/serializers/impersonation_access_token_serializer.rb
+/app/serializers/personal_access_token_entity.rb
+/app/serializers/personal_access_token_serializer.rb
+/app/serializers/project_access_token_entity.rb
+/app/serializers/project_access_token_serializer.rb
+/app/services/access_token_validation_service.rb
+/app/services/auth/
+/app/services/authorized_project_update/
+/app/services/chat_names/authorize_user_service.rb
+/app/services/personal_access_tokens/
+/app/services/projects/move_project_authorizations_service.rb
+/app/services/resource_access_tokens/
+/app/services/todos/destroy/unauthorized_features_service.rb
+/app/services/users/authorized_build_service.rb
+/app/services/users/authorized_create_service.rb
+/app/services/users/email_verification/
+/app/services/users/refresh_authorized_projects_service.rb
+/app/services/webauthn/
+/app/validators/json_schemas/cluster_agent_authorization_configuration.json
+/app/views/admin/application_settings/_external_authorization_service_form.html.haml
+/app/views/admin/impersonation_tokens/
+/app/views/authentication/
+/app/views/dashboard/projects/_zero_authorized_projects.html.haml
+/app/views/devise/mailer/password_change.html.haml
+/app/views/devise/mailer/password_change.text.erb
+/app/views/devise/mailer/password_change_by_admin.html.haml
+/app/views/devise/mailer/password_change_by_admin.text.erb
+/app/views/devise/mailer/reset_password_instructions.html.haml
+/app/views/devise/mailer/reset_password_instructions.text.erb
+/app/views/devise/**/
+/app/views/doorkeeper/authorizations/
+/app/views/doorkeeper/authorized_applications/
+/app/views/errors/omniauth_error.html.haml
+/app/views/groups/settings/_resource_access_token_creation.html.haml
+/app/views/groups/settings/_two_factor_auth.html.haml
+/app/views/groups/settings/access_tokens/
+/app/views/layouts/oauth_error.html.haml
+/app/views/notify/access_token_about_to_expire_email.html.haml
+/app/views/notify/access_token_about_to_expire_email.text.erb
+/app/views/notify/access_token_created_email.html.haml
+/app/views/notify/access_token_created_email.text.erb
+/app/views/notify/access_token_expired_email.html.haml
+/app/views/notify/access_token_expired_email.text.erb
+/app/views/notify/access_token_revoked_email.html.haml
+/app/views/notify/access_token_revoked_email.text.erb
+/app/views/profiles/passwords/
+/app/views/profiles/personal_access_tokens/
+/app/views/profiles/two_factor_auths/
+/app/views/projects/mirrors/_authentication_method.html.haml
+/app/views/projects/settings/access_tokens/
+/app/views/shared/_no_password.html.haml
+/app/views/shared/_two_factor_auth_recovery_settings_check.html.haml
+/app/views/shared/access_tokens/
+/app/views/shared/members/_two_factor_auth_badge.html.haml
+/app/views/shared/tokens/
+/app/workers/authorized_keys_worker.rb
+/app/workers/authorized_project_update/
+/app/workers/authorized_projects_worker.rb
+/app/workers/personal_access_tokens/
+/config/initializers/01_secret_token.rb
+/config/initializers/declarative_policy.rb
+/config/initializers/declarative_policy_cached_attributes.rb
+/config/initializers/devise_dynamic_password_length_validation.rb
+/config/initializers/devise_password_length.rb.example
+/config/initializers/doorkeeper.rb
+/config/initializers/doorkeeper_openid_connect.rb
+/config/initializers/gitlab_shell_secret_token.rb
+/config/initializers/omniauth.rb
+/config/initializers/rails_host_authorization.rb
+/config/initializers/rails_host_authorization_gitpod.rb
+/config/initializers/warden.rb
+/config/initializers/webauthn.rb
+/config/initializers_before_autoloader/100_patch_omniauth_oauth2.rb
+/config/initializers_before_autoloader/100_patch_omniauth_saml.rb
+/config/weak_password_digests.yml
+/ee/app/assets/javascripts/access_tokens/
+/ee/app/assets/javascripts/audit_events/components/tokens/
+/ee/app/assets/javascripts/audit_events/token_utils.js
+/ee/app/assets/javascripts/groups/settings/components/
+/ee/app/assets/javascripts/pages/admin/application_settings/general/components/
+/ee/app/assets/javascripts/pages/groups/omniauth_callbacks/
+/ee/app/assets/javascripts/pages/passwords/
+/ee/app/assets/javascripts/pages/profiles/passwords/
+/ee/app/assets/javascripts/password/
+/ee/app/assets/javascripts/requirements/components/tokens/
+/ee/app/assets/javascripts/saml_providers/scim_token_service.js
+/ee/app/assets/javascripts/saml_sso/components/
+/ee/app/assets/javascripts/vue_merge_request_widget/components/approvals/approvals_auth.vue
+/ee/app/controllers/concerns/ee/authenticates_with_two_factor.rb
+/ee/app/controllers/concerns/ee/enforces_two_factor_authentication.rb
+/ee/app/controllers/concerns/saml_authorization.rb
+/ee/app/controllers/ee/ldap/
+/ee/app/controllers/ee/omniauth_callbacks_controller.rb
+/ee/app/controllers/ee/passwords_controller.rb
+/ee/app/controllers/ee/sessions_controller.rb
+/ee/app/controllers/groups/omniauth_callbacks_controller.rb
+/ee/app/controllers/groups/scim_oauth_controller.rb
+/ee/app/controllers/oauth/
+/ee/app/controllers/omniauth_kerberos_controller.rb
+/ee/app/controllers/users/identity_verification_controller.rb
+/ee/app/finders/auth/
+/ee/app/helpers/ee/access_tokens_helper.rb
+/ee/app/helpers/ee/auth_helper.rb
+/ee/app/helpers/ee/personal_access_tokens_helper.rb
+/ee/app/models/auth/
+/ee/app/models/concerns/identity_verifiable.rb
+/ee/app/models/concerns/password_complexity.rb
+/ee/app/models/ee/personal_access_token.rb
+/ee/app/models/ee/project_authorization.rb
+/ee/app/models/members/member_role.rb
+/ee/app/models/scim_oauth_access_token.rb
+/ee/app/serializers/scim_oauth_access_token_entity.rb
+/ee/app/services/arkose/token_verification_service.rb
+/ee/app/services/ee/auth/
+/ee/app/services/ee/personal_access_tokens/
+/ee/app/services/ee/resource_access_tokens/
+/ee/app/services/ee/users/authorized_build_service.rb
+/ee/app/services/personal_access_tokens/
+/ee/app/services/security/token_revocation_service.rb
+/ee/app/services/users/email_verification/
+/ee/app/validators/password/
+/ee/app/views/admin/application_settings/_personal_access_token_expiration_policy.html.haml
+/ee/app/views/credentials_inventory_mailer/personal_access_token_revoked_email.html.haml
+/ee/app/views/credentials_inventory_mailer/personal_access_token_revoked_email.text.haml
+/app/views/devise/**/
+/ee/app/views/groups/_personal_access_token_expiration_policy.html.haml
+/ee/app/views/groups/sso/_authorize_pane.html.haml
+/ee/app/views/notify/policy_revoked_personal_access_tokens_email.html.haml
+/ee/app/views/notify/policy_revoked_personal_access_tokens_email.text.erb
+/ee/app/views/oauth/
+/ee/app/views/shared/_password_requirements_list.html.haml
+/ee/app/views/shared/credentials_inventory/_personal_access_tokens.html.haml
+/ee/app/views/shared/credentials_inventory/personal_access_tokens/
+/ee/app/workers/auth/
+/ee/app/workers/personal_access_tokens/
+/ee/config/routes/oauth.rb
+/ee/lib/ee/gitlab/auth/
+/ee/lib/ee/gitlab/omniauth_initializer.rb
+/ee/lib/gitlab/auth/
+/ee/lib/gitlab/authority_analyzer.rb
+/ee/lib/gitlab/geo/oauth/
+/ee/lib/gitlab/kerberos/
+/ee/lib/omni_auth/
+/ee/spec/requests/custom_roles/
+/ee/lib/system_check/geo/authorized_keys_check.rb
+/ee/lib/system_check/geo/authorized_keys_flag_check.rb
+/lib/api/entities/impersonation_token.rb
+/lib/api/entities/impersonation_token_with_token.rb
+/lib/api/entities/personal_access_token.rb
+/lib/api/entities/personal_access_token_with_token.rb
+/lib/api/entities/resource_access_token.rb
+/lib/api/entities/resource_access_token_with_token.rb
+/lib/api/helpers/authentication.rb
+/lib/api/helpers/packages/basic_auth_helpers.rb
+/lib/api/helpers/personal_access_tokens_helpers.rb
+/lib/api/personal_access_tokens/
+/lib/api/personal_access_tokens.rb
+/lib/api/resource_access_tokens.rb
+/lib/api/support/token_with_expiration.rb
+/lib/gitlab/api_authentication/
+/lib/gitlab/auth/
+/lib/gitlab/auth.rb
+/lib/gitlab/auth_logger.rb
+/lib/gitlab/authorized_keys.rb
+/lib/gitlab/background_migration/encrypt_static_object_token.rb
+/lib/gitlab/background_migration/expire_o_auth_tokens.rb
+/lib/gitlab/background_migration/migrate_u2f_webauthn.rb
+/lib/gitlab/background_migration/update_users_where_two_factor_auth_required_from_group.rb
+/lib/gitlab/chat_name_token.rb
+/lib/gitlab/cleanup/personal_access_tokens.rb
+/lib/gitlab/external_authorization/
+/lib/gitlab/external_authorization.rb
+/lib/gitlab/grape_logging/loggers/token_logger.rb
+/lib/gitlab/graphql/authorize/
+/lib/gitlab/jwt_authenticatable.rb
+/lib/gitlab/jwt_token.rb
+/lib/gitlab/lfs_token.rb
+/lib/gitlab/mail_room/
+/lib/gitlab/omniauth_initializer.rb
+/lib/gitlab/project_authorizations.rb
+/lib/json_web_token/
+/lib/omni_auth/
+/lib/security/weak_passwords.rb
+/lib/system_check/app/authorized_keys_permission_check.rb
+/lib/system_check/incoming_email/imap_authentication_check.rb
+/lib/tasks/gitlab/password.rake
+/lib/tasks/tokens.rake
+
+[Verify] @gitlab-org/maintainers/cicd-verify @shinya.maeda @stanhu @ayufan
+# With these catch-all rules we will require backend approval and use it as an
+# opportunity to refine specific rules defined in this section.
+# Note that frontend, CI templates and other concerns should be kept within
+# the same section.
+/**/app/**/ci/
+/**/lib/**/ci/
+/**/app/**/merge_trains/
+/app/controllers/admin/jobs_controller.rb
+/app/controllers/admin/runner_projects_controller.rb
+/app/controllers/admin/runners_controller.rb
+/app/controllers/projects/artifacts_controller.rb
+/app/controllers/projects/build_artifacts_controller.rb
+/app/controllers/projects/builds_controller.rb
+/app/controllers/projects/jobs_controller.rb
+/app/controllers/runner_setup_controller.rb
+/app/controllers/projects/pipeline_schedules_controller.rb
+/app/controllers/projects/pipelines_controller.rb
+/app/controllers/projects/pipelines_settings_controller.rb
+/app/controllers/projects/runner_projects_controller.rb
+/app/controllers/projects/runners_controller.rb
+/app/controllers/projects/triggers_controller.rb
+/app/controllers/projects/variables_controller.rb
+/app/models/commit_status.rb
+/app/models/generic_commit_status.rb
+/app/models/namespace_ci_cd_setting.rb
+/app/models/project_ci_cd_setting.rb
+/app/models/projects/build_artifacts_size_refresh.rb
+/app/presenters/commit_status_presenter.rb
+/app/presenters/generic_commit_status_presenter.rb
+/app/services/projects/refresh_build_artifacts_size_statistics_service.rb
+/app/uploaders/job_artifact_uploader.rb
+/app/validators/json_schemas/build_metadata_id_tokens.json
+/app/views/projects/artifacts/
+/app/views/projects/generic_commit_statuses/
+/app/views/projects/jobs/
+/app/views/projects/pipeline_schedules/
+/app/views/projects/pipelines/
+/app/views/projects/triggers/
+/app/workers/build_hooks_worker.rb
+/app/workers/build_queue_worker.rb
+/app/workers/build_success_worker.rb
+/app/workers/ci_platform_metrics_update_cron_worker.rb
+/app/workers/create_pipeline_worker.rb
+/app/workers/expire_build_artifacts_worker.rb
+/app/workers/pipeline_hooks_worker.rb
+/app/workers/pipeline_metrics_worker.rb
+/app/workers/pipeline_notification_worker.rb
+/app/workers/pipeline_process_worker.rb
+/app/workers/pipeline_schedule_worker.rb
+/app/workers/projects/refresh_build_artifacts_size_statistics_worker.rb
+/app/workers/run_pipeline_schedule_worker.rb
+/app/workers/stuck_ci_jobs_worker.rb
+/app/workers/update_external_pull_requests_worker.rb
+/lib/api/commit_statuses.rb
+/ee/app/finders/merge_trains_finder.rb
+/ee/app/services/auto_merge/add_to_merge_train_when_pipeline_succeeds_service.rb
+/ee/app/services/auto_merge/merge_train_service.rb
+/ee/app/services/system_notes/merge_train_service.rb
+/ee/app/controllers/ee/admin/runners_controller.rb
+/ee/app/controllers/ee/projects/pipelines_controller.rb
+/ee/app/controllers/projects/pipelines/
+/ee/app/controllers/projects/subscriptions_controller.rb
+/ee/app/helpers/ee/projects/pipeline_helper.rb
+/ee/app/views/ci_minutes_usage_mailer/
+/ee/app/views/projects/pipelines/
+/ee/app/views/projects/settings/ci_cd/
+/ee/lib/api/merge_trains.rb
+/ee/lib/ee/api/entities/merge_train.rb
+
+# Overrides for Verify. These files below require approval from teams outside Verify.
+/**/lib/**/ci/reports/**/ @gitlab-org/maintainers/rails-backend
+/**/lib/**/ci/parsers/**/ @gitlab-org/maintainers/rails-backend
+/ee/lib/gitlab/ci/parsers/license_compliance/ @gitlab-org/secure/composition-analysis-be
+/ee/lib/gitlab/ci/parsers/security/ @gitlab-org/govern/threat-insights-backend-team
+/ee/lib/gitlab/ci/reports/coverage_fuzzing/ @gitlab-org/secure/fuzzing-be
+/ee/lib/gitlab/ci/reports/dependency_list/ @gitlab-org/secure/composition-analysis-be
+/ee/lib/gitlab/ci/reports/license_scanning/ @gitlab-org/secure/composition-analysis-be
+/ee/lib/gitlab/ci/reports/security/ @gitlab-org/govern/threat-insights-backend-team
+
+# Verify frontend
+/**/javascripts/ci/ @gitlab-org/ci-cd/verify/frontend
+/**/javascripts/token_access/ @gitlab-org/ci-cd/verify/frontend
+/**/javascripts/admin/application_settings/runner_token_expiration/ @gitlab-org/ci-cd/verify/frontend
+/**/javascripts/usage_quotas/pipelines/ @gitlab-org/ci-cd/verify/frontend @sheldonled @aalakkad @kpalchyk
+/**/javascripts/editor/schema/ci.json @gitlab-org/ci-cd/verify/frontend
+
+## Verify:Runner Fleet Backend
+
+/app/controllers/admin/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/controllers/concerns/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/controllers/groups/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/controllers/projects/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/controllers/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/finders/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/graphql/mutations/ci/runner/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/graphql/resolvers/ci/*_runners_resolver.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/graphql/resolvers/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/graphql/types/ci/runner_*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/graphql/types/namespace/shared_runners_setting_enum.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/graphql/types/permission_types/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/models/ci/build_runner_session.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/models/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/models/concerns/ci/has_runner_executor.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/models/concerns/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/models/preloaders/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/policies/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/presenters/ci/runner_*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/serializers/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/services/groups/update_shared_runners_service.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/services/ci/runners/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/app/workers/ci/runners/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/db/docs/ci_runner*.yml @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/controllers/ee/admin/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/controllers/ee/groups/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/graphql/ee/mutations/ci/runner/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/graphql/ee/types/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/graphql/resolvers/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/models/ee/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/policies/ee/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/services/audit_events/*runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/services/ci/runners/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/services/ee/ci/runners/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/ee/app/workers/ci/runners/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/api/ci/helpers/runner.rb @gitlab-org/maintainers/cicd-verify @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/api/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/api/ci/runner.rb @gitlab-org/maintainers/cicd-verify @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/api/entities/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/gitlab/audit/ci_runner_token_author.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/gitlab/ci/runner*.rb @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/gitlab/seeders/ci/runner/ @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+/lib/tasks/gitlab/seed/runner_fleet.rake @gitlab-org/ci-cd/runner-fleet-team/backend-approvers
+# CI/CD templates require approval from specific owners.
+/lib/gitlab/ci/templates/ @gitlab-org/maintainers/cicd-templates
+/lib/gitlab/ci/templates/Security/ @gonzoyumo @twoodham @amarpatel
+/lib/gitlab/ci/templates/Security/API-Fuzzing.*.yml @gitlab-org/secure/dynamic-analysis
+/lib/gitlab/ci/templates/Security/Container-Scanning.*.yml @gitlab-org/secure/composition-analysis-be
+/lib/gitlab/ci/templates/Security/Coverage-Fuzzing.*.yml @gitlab-org/secure/dynamic-analysis
+/lib/gitlab/ci/templates/Security/DAST.*.yml @gitlab-org/secure/dynamic-analysis
+/lib/gitlab/ci/templates/Security/Dependency-Scanning.*.yml @gitlab-org/secure/composition-analysis-be
+/lib/gitlab/ci/templates/Security/License-Scanning.*.yml @gitlab-org/secure/composition-analysis-be
+/lib/gitlab/ci/templates/Security/SAST.*.yml @gitlab-org/secure/static-analysis
+/lib/gitlab/ci/templates/Security/Secret-Detection.*.yml @gitlab-org/secure/static-analysis
+/lib/gitlab/ci/templates/Security/Secure-Binaries.*.yml @gitlab-org/secure/static-analysis @gitlab-org/secure/composition-analysis-be @gitlab-org/secure/dynamic-analysis
+# Note: The `Fortify-FoD-sast.gitlab-ci.yml` template is provided and maintained by Fortify, an official Technology Partner with GitLab.
+/lib/gitlab/ci/templates/Jobs/Container-Scanning.*.yml @gitlab-org/secure/composition-analysis-be
+/lib/gitlab/ci/templates/Jobs/Dependency-Scanning.*.yml @gitlab-org/secure/composition-analysis-be
+/lib/gitlab/ci/templates/Jobs/License-Scanning.*.yml @gitlab-org/secure/composition-analysis-be
+/lib/gitlab/ci/templates/Jobs/SAST.*.yml @gitlab-org/secure/static-analysis
+/lib/gitlab/ci/templates/Jobs/Secret-Detection.*.yml @gitlab-org/secure/static-analysis
+
+[Data Stores::Tenant Scale] @abdwdd @alexpooley @manojmj
+lib/api/entities/basic_project_details.rb
+lib/api/entities/project_with_access.rb
+lib/api/entities/project_identity.rb
+lib/api/entities/project.rb
+ee/lib/ee/api/entities/project.rb
+
+[Compliance] @gitlab-org/govern/compliance
+/app/services/audit_events/build_service.rb
+/ee/app/services/ee/audit_events/build_service.rb
+/ee/spec/services/audit_events/custom_audit_event_service_spec.rb
+/app/models/audit_event.rb
+/app/services/audit_event_service.rb
+/app/services/concerns/audit_event_save_type.rb
+/app/views/profiles/audit_log.html.haml
+/ee/app/assets/javascripts/audit_events/
+/ee/app/controllers/admin/audit_log_reports_controller.rb
+/ee/app/controllers/admin/audit_logs_controller.rb
+/ee/app/controllers/concerns/audit_events/audit_events_params.rb
+/ee/app/controllers/groups/audit_events_controller.rb
+/ee/app/controllers/projects/audit_events_controller.rb
+/ee/app/finders/audit_event_finder.rb
+/ee/app/graphql/types/audit_events/
+/ee/app/helpers/audit_events_helper.rb
+/ee/app/helpers/auditor_user_helper.rb
+/ee/app/models/audit_events/external_audit_event_destination.rb
+/ee/app/models/concerns/auditable.rb
+/ee/app/models/ee/audit_event.rb
+/ee/app/policies/audit_events/external_audit_event_destination_policy.rb
+/ee/app/presenters/audit_event_presenter.rb
+/ee/app/serializers/audit_event_entity.rb
+/ee/app/serializers/audit_event_serializer.rb
+/ee/app/services/ci/audit_variable_change_service.rb
+/ee/app/services/ee/audit_event_service.rb
+/ee/app/views/admin/users/_auditor_access_level_radio.html.haml
+/ee/app/views/admin/users/_auditor_user_badge.html.haml
+/ee/app/views/shared/icons/_icon_audit_events_purple.svg
+/ee/app/views/shared/promotions/_promote_audit_events.html.haml
+/ee/app/workers/audit_events/audit_event_streaming_worker.rb
+/ee/config/events/1652263097_groups__audit_events__index_click_streams_tab.yml
+/ee/config/events/202108302307_admin_audit_logs_index_click_date_range_button.yml
+/ee/config/events/202108302307_groups__audit_events_controller_search_audit_event.yml
+/ee/config/events/202108302307_profiles_controller_search_audit_event.yml
+/ee/config/events/202108302307_projects__audit_events_controller_search_audit_event.yml
+/ee/config/events/202111041910_admin__audit_logs_controller_search_audit_event.yml
+/ee/config/metrics/counts_28d/20210216183930_g_compliance_audit_events_monthly.yml
+/ee/config/metrics/counts_28d/20210216183934_i_compliance_audit_events_monthly.yml
+/ee/config/metrics/counts_28d/20210216183942_a_compliance_audit_events_api_monthly.yml
+/ee/config/metrics/counts_28d/20211130085433_g_manage_compliance_audit_event_destinations.yml
+/ee/config/metrics/counts_7d/20210216183906_g_compliance_audit_events.yml
+/ee/config/metrics/counts_7d/20210216183908_i_compliance_audit_events.yml
+/ee/config/metrics/counts_7d/20210216183912_a_compliance_audit_events_api.yml
+/ee/config/metrics/counts_7d/20210216183928_g_compliance_audit_events_weekly.yml
+/ee/config/metrics/counts_7d/20210216183932_i_compliance_audit_events_weekly.yml
+/ee/config/metrics/counts_7d/20210216183940_a_compliance_audit_events_api_weekly.yml
+/ee/config/metrics/counts_all/20211130085433_g_manage_compliance_audit_event_destinations.yml
+/ee/lib/api/audit_events.rb
+/ee/lib/audit/
+/ee/lib/ee/api/entities/audit_event.rb
+/ee/lib/ee/gitlab/audit/
+/lib/gitlab/audit/auditor.rb
+/lib/gitlab/audit_json_logger.rb
+/ee/app/graphql/mutations/audit_events/
+/ee/app/models/concerns/audit_events/
+/ee/app/views/projects/audit_events/
+/app/controllers/groups/releases_controller.rb
+/app/controllers/projects/releases/evidences_controller.rb
+/app/workers/releases/create_evidence_worker.rb
+/app/workers/releases/manage_evidence_worker.rb
+
+^[Fulfillment::Utilization] @sheldonled @aalakkad @kpalchyk
+/ee/app/assets/javascripts/usage_quotas/components/
+/ee/app/assets/javascripts/usage_quotas/seats/
+/ee/app/assets/javascripts/usage_quotas/storage/
+
+[Manage::Foundations] @gitlab-org/manage/foundations/engineering
+/lib/sidebars/
+/ee/lib/sidebars/
+
+[Global Search] @gitlab-org/search-team/migration-maintainers
+/ee/elastic/migrate/
+/ee/spec/elastic/migrate/
+/ee/spec/support/elastic.rb
+
+[Create::IDE - Remote Development Backend] @gitlab-org/maintainers/remote-development/backend
+/ee/app/models/remote_development/
+/ee/app/policies/remote_development/
+/ee/app/finders/remote_development/
+/ee/app/graphql/types/remote_development/
+/ee/app/graphql/mutations/remote_development/
+/ee/app/graphql/resolvers/remote_development/
+/ee/app/controllers/remote_development/
+/ee/app/services/remote_development/
+/ee/lib/remote_development/
+/ee/spec/features/remote_development/
+/ee/spec/models/remote_development/
+/ee/spec/policies/remote_development/
+/ee/spec/requests/api/graphql/mutations/remote_development/
+/ee/spec/requests/api/graphql/remote_development/
+/ee/spec/features/remote_development/ @gitlab-org/maintainers/remote-development/backend @gitlab-org/maintainers/remote-development/frontend
+/ee/spec/finders/remote_development/
+/ee/spec/support/shared_contexts/remote_development/
+/ee/spec/graphql/types/remote_development/
+/ee/spec/factories/remote_development/
+/ee/spec/lib/remote_development/
+/ee/spec/fixtures/remote_development/
+/ee/spec/controllers/remote_development/
+/ee/spec/services/remote_development/
+/qa/qa/specs/features/**/remote_development/ @gitlab-org/maintainers/remote-development/backend @gl-quality/qe-maintainers
+
+[Create::IDE - Remote Development Frontend] @gitlab-org/maintainers/remote-development/frontend
+/ee/app/assets/remote_development/
+/ee/app/assets/**/remote_development/
+/ee/app/views/remote_development/
+/ee/spec/frontend/remote_development/
+/ee/spec/frontend/**/remote_development/
+
+[Govern::Anti-abuse] @gitlab-org/modelops/anti-abuse
+/ee/app/controllers/users/identity_verification_controller.rb
+/ee/app/models/concerns/identity_verifiable.rb
+/ee/config/routes/identity_verification.rb
+
+[Deploy:Environments - KAS Version Maintainers] @gitlab-org/maintainers/kas-version-maintainers
+/GITLAB_KAS_VERSION
+
+# JiHu GitLab rules. See https://gitlab.com/gitlab-jh/gitlab-jh-enablement/-/issues/213#note_1024367528
+
+[JH Frontend] @jihulab/maintainers/frontend
+/jh/app/assets/
+/jh/**/*.scss
+/jh/**/*.js
+/jh/**/*.vue
+
+[JH Rails Backend] @jihulab/maintainers/rails-backend
+/jh/**/*.rb
+/jh/**/*.rake
+/jh/qa/ @jihulab/maintainers/quality
+
+[JH Technical Writer] @jihulab/maintainers/technical-writer
+/jh/doc/

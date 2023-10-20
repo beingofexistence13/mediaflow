@@ -1,0 +1,20 @@
+---
+key_path: counts.projects_zentao_active
+description: Count of projects with active Zentao integrations
+product_section: dev
+product_stage: manage
+product_group: integrations
+value_type: number
+status: active
+milestone: "14.4"
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/issues/338178
+time_frame: all
+data_source: database
+data_category: Operational
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate

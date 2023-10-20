@@ -1,0 +1,20 @@
+---
+key_path: counts.projects_shimo_active
+description: Count of projects with active Shimo integrations
+product_section: dev
+product_stage: manage
+product_group: integrations
+value_type: number
+status: active
+milestone: "14.5"
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/issues/343386
+time_frame: all
+data_source: database
+data_category: optional
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate

@@ -1,0 +1,61 @@
+version: "3.7"
+
+services:
+
+    solr-shard-webapp-proxy:
+        image: gcr.io/mcback/solr-shard-webapp-proxy:latest
+        init: true
+        networks:
+            - default
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host for debugging
+            - "8983:8983"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/nginx.conf
+              target: /etc/nginx/nginx.conf
+        depends_on:
+            - solr-shard-01
+
+    solr-shard-01:
+        image: gcr.io/mcback/solr-shard:latest
+        init: true
+        networks:
+            - default
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - type: bind
+              source: ./../solr-base/src/solr/
+              target: /usr/src/solr/
+            - type: bind
+              source: ./../solr-shard/bin/solr-shard.sh
+              target: /solr-shard.sh
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: gcr.io/mcback/solr-zookeeper:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
+
+networks:
+    default:

@@ -1,0 +1,20 @@
+- breadcrumb_title _('Merge requests')
+- page_title _('Merge requests')
+- @force_desktop_expanded_sidebar = true
+
+%section.rspec-merge-request-settings.settings.merge-requests-feature.no-animate#js-merge-request-settings.expanded{ class: [('hidden' if @project.project_feature.send(:merge_requests_access_level) == 0)], data: { testid: 'merge-request-settings-content' } }
+  .settings-header
+    %h4= _('Merge requests')
+    = render_if_exists 'projects/settings/merge_requests/merge_request_settings_description_text'
+
+  .settings-content
+    = render_if_exists 'shared/promotions/promote_mr_features'
+
+    = gitlab_ui_form_for @project, url: project_settings_merge_requests_path(@project), html: { multipart: true, class: "merge-request-settings-form js-mr-settings-form" }, authenticity_token: true do |f|
+      %input{ name: 'update_section', type: 'hidden', value: 'js-merge-request-settings' }
+      = render 'projects/settings/merge_requests/merge_request_settings', form: f
+      = f.submit _('Save changes'), class: "rspec-save-merge-request-changes", data: { testid: 'save-merge-request-changes-button' }, pajamas_button: true
+
+= render_if_exists 'projects/settings/merge_requests/merge_request_approvals_settings', expanded: true
+= render_if_exists 'projects/settings/merge_requests/suggested_reviewers_settings', expanded: true
+= render_if_exists 'projects/settings/merge_requests/target_branch_rules_settings'

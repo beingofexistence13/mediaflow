@@ -1,0 +1,29 @@
+---
+data_category: optional
+key_path: redis_hll_counters.search.search_total_unique_counts_weekly
+description: Calculated unique users to perform Basic or Advanced searches by week
+product_section: enablement
+product_stage: enablement
+product_group: global_search
+value_type: number
+status: active
+time_frame: 7d
+data_source: redis_hll
+instrumentation_class: AggregatedMetric
+options:
+  aggregate:
+    operator: OR
+    attribute: user_id
+  events:
+  - i_search_total
+  - i_search_advanced
+  - i_search_paid
+distribution:
+- ee
+- ce
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []
+milestone: "<13.9"

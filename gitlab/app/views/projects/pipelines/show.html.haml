@@ -1,0 +1,31 @@
+- @force_fluid_layout = true
+- add_to_breadcrumbs _('Pipelines'), project_pipelines_path(@project)
+- breadcrumb_title "##{@pipeline.id}"
+- page_title _('Pipeline')
+- pipeline_has_errors = @pipeline.builds.empty? && @pipeline.yaml_errors.present?
+- add_page_specific_style 'page_bundles/pipeline'
+- add_page_specific_style 'page_bundles/reports'
+- add_page_specific_style 'page_bundles/ci_status'
+- add_page_specific_style 'page_bundles/merge_request'
+- add_page_startup_graphql_call('pipelines/get_pipeline_details', { projectPath: @project.full_path, iid: @pipeline.iid })
+
+.js-pipeline-container{ data: { controller_action: "#{controller.action_name}" } }
+  #js-pipeline-details-header-vue{ data: js_pipeline_details_header_data(@project, @pipeline) }
+
+  = render_if_exists 'projects/pipelines/cc_validation_required_alert', pipeline: @pipeline
+
+  - if pipeline_has_errors
+    = render Pajamas::AlertComponent.new(title: s_('Pipelines|Unable to create pipeline'),
+      variant: :danger,
+      dismissible: false,
+      alert_options: { class: 'gl-mb-5' }) do |c|
+      - c.with_body do
+        %ul
+          - @pipeline.yaml_errors.split("\n").each do |error|
+            %li= error
+        - if can_view_pipeline_editor?(@project)
+          = render Pajamas::ButtonComponent.new(href: project_ci_pipeline_editor_path(@project), variant: :confirm) do
+            = s_("Pipelines|Go to the pipeline editor")
+
+  - else
+    #js-pipeline-tabs{ data: js_pipeline_tabs_data(@project, @pipeline, @current_user) }

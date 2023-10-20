@@ -1,0 +1,158 @@
+<script>
+import { GlSkeletonLoader, GlSprintf } from '@gitlab/ui';
+import autoMergeMixin from 'ee_else_ce/vue_merge_request_widget/mixins/auto_merge';
+import autoMergeEnabledQuery from 'ee_else_ce/vue_merge_request_widget/queries/states/auto_merge_enabled.query.graphql';
+import { createAlert } from '~/alert';
+import { getIdFromGraphQLId } from '~/graphql_shared/utils';
+import { __ } from '~/locale';
+import { AUTO_MERGE_STRATEGIES } from '../../constants';
+import eventHub from '../../event_hub';
+import mergeRequestQueryVariablesMixin from '../../mixins/merge_request_query_variables';
+import MrWidgetAuthor from '../mr_widget_author.vue';
+import StateContainer from '../state_container.vue';
+
+export default {
+  name: 'MRWidgetAutoMergeEnabled',
+  apollo: {
+    state: {
+      query: autoMergeEnabledQuery,
+      variables() {
+        return this.mergeRequestQueryVariables;
+      },
+      update: (data) => data.project?.mergeRequest,
+    },
+  },
+  components: {
+    MrWidgetAuthor,
+    GlSkeletonLoader,
+    GlSprintf,
+    StateContainer,
+  },
+  mixins: [autoMergeMixin, mergeRequestQueryVariablesMixin],
+  props: {
+    mr: {
+      type: Object,
+      required: true,
+    },
+    service: {
+      type: Object,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      state: {},
+      isCancellingAutoMerge: false,
+      isRemovingSourceBranch: false,
+    };
+  },
+  computed: {
+    loading() {
+      return this.$apollo.queries.state.loading && Object.keys(this.state).length === 0;
+    },
+    stateRemoveSourceBranch() {
+      if (!this.state.shouldRemoveSourceBranch) return false;
+
+      return this.state.shouldRemoveSourceBranch || this.state.forceRemoveSourceBranch;
+    },
+    canRemoveSourceBranch() {
+      const { currentUserId } = this.mr;
+      const mergeUserId = getIdFromGraphQLId(this.state.mergeUser?.id);
+      const canRemoveSourceBranch = this.state.userPermissions.removeSourceBranch;
+
+      return (
+        !this.stateRemoveSourceBranch && canRemoveSourceBranch && mergeUserId === currentUserId
+      );
+    },
+    actions() {
+      const actions = [];
+
+      if (this.loading) {
+        return actions;
+      }
+
+      if (this.mr.canCancelAutomaticMerge) {
+        actions.push({
+          text: this.cancelButtonText,
+          loading: this.isCancellingAutoMerge,
+          class: 'js-cancel-auto-merge',
+          testId: 'cancelAutomaticMergeButton',
+          onClick: () => this.cancelAutomaticMerge(),
+        });
+      }
+
+      return actions;
+    },
+  },
+  methods: {
+    cancelAutomaticMerge() {
+      this.isCancellingAutoMerge = true;
+      this.service
+        .cancelAutomaticMerge()
+        .then((res) => res.data)
+        .then(() => {
+          eventHub.$emit('MRWidgetUpdateRequested');
+        })
+        .catch(() => {
+          this.isCancellingAutoMerge = false;
+          createAlert({
+            message: __('Something went wrong. Please try again.'),
+          });
+        });
+    },
+    removeSourceBranch() {
+      const options = {
+        sha: this.mr.sha,
+        auto_merge_strategy: this.state.autoMergeStrategy,
+        should_remove_source_branch: true,
+      };
+
+      this.isRemovingSourceBranch = true;
+      this.service
+        .merge(options)
+        .then((res) => res.data)
+        .then((data) => {
+          if (AUTO_MERGE_STRATEGIES.includes(data.status)) {
+            eventHub.$emit('MRWidgetUpdateRequested');
+          }
+        })
+        .then(() => {
+          this.$apollo.queries.state.refetch();
+        })
+        .catch(() => {
+          this.isRemovingSourceBranch = false;
+          createAlert({
+            message: __('Something went wrong. Please try again.'),
+          });
+        });
+    },
+  },
+};
+</script>
+<template>
+  <state-container
+    status="scheduled"
+    :is-loading="loading"
+    :actions="actions"
+    is-collapsible
+    :collapsed="mr.mergeDetailsCollapsed"
+    @toggle="() => mr.toggleMergeDetails()"
+  >
+    <template #loading>
+      <gl-skeleton-loader :width="334" :height="24">
+        <rect x="0" y="0" width="24" height="24" rx="4" />
+        <rect x="32" y="2" width="150" height="20" rx="4" />
+        <rect x="190" y="2" width="144" height="20" rx="4" />
+      </gl-skeleton-loader>
+    </template>
+    <template v-if="!loading">
+      <h4 class="gl-mr-3 gl-flex-grow-1" data-testid="statusText">
+        <gl-sprintf :message="statusText" data-testid="statusText">
+          <template #merge_author>
+            <mr-widget-author v-if="state.mergeUser" :author="state.mergeUser" />
+          </template>
+        </gl-sprintf>
+      </h4>
+    </template>
+  </state-container>
+</template>

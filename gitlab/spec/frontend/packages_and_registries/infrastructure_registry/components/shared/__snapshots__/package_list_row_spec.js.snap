@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`packages_list_row renders 1`] = `
+<div
+  class="gl-border-b-1 gl-border-b-gray-100 gl-border-b-solid gl-border-t-1 gl-border-t-solid gl-border-t-transparent gl-display-flex gl-flex-direction-column"
+  data-testid="package-row"
+>
+  <div
+    class="gl-align-items-center gl-display-flex gl-py-3"
+  >
+    <div
+      class="gl-align-items-stretch gl-display-flex gl-flex-grow-1 gl-justify-content-space-between gl-xs-flex-direction-column"
+    >
+      <div
+        class="gl-display-flex gl-flex-direction-column gl-flex-grow-1 gl-min-w-0 gl-xs-mb-3"
+      >
+        <div
+          class="gl-align-items-center gl-display-flex gl-font-weight-bold gl-min-h-6 gl-min-w-0 gl-text-body"
+        >
+          <div
+            class="gl-align-items-center gl-display-flex gl-min-w-0 gl-mr-3"
+          >
+            <gl-link-stub
+              class="gl-min-w-0 gl-text-body"
+              data-testid="details-link"
+              href="foo"
+            >
+              <gl-truncate-stub
+                position="end"
+                text="Test package"
+              />
+            </gl-link-stub>
+          </div>
+        </div>
+        <div
+          class="gl-align-items-center gl-display-flex gl-flex-grow-1 gl-min-h-6 gl-min-w-0 gl-text-gray-500"
+        >
+          <div
+            class="gl-display-flex"
+          >
+            <span>
+              1.0.0
+            </span>
+            <div />
+            <package-path-stub
+              path="foo/bar/baz"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="gl-display-flex gl-flex-direction-column gl-flex-shrink-0 gl-justify-content-space-between gl-sm-align-items-flex-end gl-text-gray-500"
+      >
+        <div
+          class="gl-align-items-center gl-display-flex gl-min-h-6 gl-sm-font-weight-bold gl-sm-text-body"
+        >
+          <publish-method-stub
+            packageentity="[object Object]"
+          />
+        </div>
+        <div
+          class="gl-align-items-center gl-display-flex gl-min-h-6"
+        >
+          <span>
+            <gl-sprintf-stub
+              message="Created %{timestamp}"
+            />
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="gl-display-flex gl-justify-content-end gl-pr-1 gl-w-9"
+    >
+      <gl-button-stub
+        aria-label="Remove package"
+        buttontextclasses=""
+        category="secondary"
+        data-testid="action-delete"
+        icon="remove"
+        size="medium"
+        title="Remove package"
+        variant="danger"
+      />
+    </div>
+  </div>
+</div>
+`;

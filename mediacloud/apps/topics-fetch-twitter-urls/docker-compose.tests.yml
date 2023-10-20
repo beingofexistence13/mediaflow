@@ -1,0 +1,119 @@
+version: "3.7"
+
+services:
+
+    topics-fetch-twitter-urls:
+        image: gcr.io/mcback/topics-fetch-twitter-urls:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_TWITTER_CONSUMER_KEY: "${MC_TWITTER_CONSUMER_KEY}"
+            MC_TWITTER_CONSUMER_SECRET: "${MC_TWITTER_CONSUMER_SECRET}"
+            MC_TWITTER_ACCESS_TOKEN: "${MC_TWITTER_ACCESS_TOKEN}"
+            MC_TWITTER_ACCESS_TOKEN_SECRET: "${MC_TWITTER_ACCESS_TOKEN_SECRET}"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/topics-fetch-twitter-urls/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../topics-base/src/
+              target: /opt/mediacloud/src/topics-base/
+            - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            # 1) _add_tweet_story() calls generate_story()
+            # 2) generate_story() calls _extract_story()
+            # 3) _extract_story() runs a remote extraction job
+            - extract-and-vector
+            - rabbitmq-server
+
+    extract-and-vector:
+        image: gcr.io/mcback/extract-and-vector:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../extract-and-vector/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - extract-article-from-page
+
+    extract-article-from-page:
+        image: gcr.io/mcback/extract-article-from-page:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 8080
+        volumes:
+            - type: bind
+              source: ./../extract-article-from-page/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../extract-article-from-page/src/
+              target: /opt/mediacloud/src/extract-article-from-page/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+
+    postgresql-pgbouncer:
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/pgmigrate/
+              target: /opt/postgresql-server/pgmigrate/
+            - type: bind
+              source: ./../postgresql-server/etc/postgresql/14/extra/
+              target: /etc/postgresql/14/extra/
+            - type: bind
+              source: ./../postgresql-base/etc/postgresql/14/main/
+              target: /etc/postgresql/14/main/
+
+    rabbitmq-server:
+        image: gcr.io/mcback/rabbitmq-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - type: bind
+              source: ./../rabbitmq-server/conf/
+              target: /etc/rabbitmq/

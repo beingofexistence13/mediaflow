@@ -1,0 +1,15 @@
+#!/bin/bash
+
+OUT=`netstat -as | grep "OutOctets" | awk '{ print $2 }'`
+IN=`netstat -as | grep "InOctets" | awk '{ print $2 }'`
+
+TOTAL=`expr $OUT + $IN`
+echo "<module>"
+echo " <name><![CDATA[Network_Usage_Bytes]]></name>"
+echo " <type><![CDATA[generic_data_inc]]></type>"
+echo " <data><![CDATA[$TOTAL]]></data>"
+echo " <unit><![CDATA[bytes/sec]]></unit>"
+echo " <description><![CDATA[Total bytes/sec transfered in this system]]></description>"
+echo " <module_group>Networking</module_group>"
+echo "</module>"
+

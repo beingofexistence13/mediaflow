@@ -1,0 +1,7 @@
+#import "ee_else_ce/work_items/graphql/notes/work_item_note.fragment.graphql"
+
+subscription workItemNoteUpdated($noteableId: NoteableID) {
+  workItemNoteUpdated(noteableId: $noteableId) {
+    ...WorkItemNote
+  }
+}

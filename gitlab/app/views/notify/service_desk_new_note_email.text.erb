@@ -1,0 +1,5 @@
+<%= _("New response for issue #%{issue_iid}:") % { issue_iid: @issue.iid } %>
+
+<%= _("Author: %{author_name}") % { author_name: sanitize_name(@note.author_name) } %>
+
+<%= @note.note %>

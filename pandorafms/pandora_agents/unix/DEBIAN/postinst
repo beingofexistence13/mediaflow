@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PANDORA_LOG=/var/log/pandora/pandora_agent.log
+PANDORA_BIN=/usr/bin/pandora_agent
+PANDORA_EXEC_BIN=/usr/bin/pandora_agent
+PANDORA_HOME=/usr/share/pandora_agent
+PANDORA_CFG=/etc/pandora
+
+LOG_TIMESTAMP=`date +"%Y/%m/%d %H:%M:%S"`
+
+echo "Start log of agent."
+echo "$LOG_TIMESTAMP Pandora FMS installer has created this file at startup" > $PANDORA_LOG
+
+echo "Setting secure permissions and ownership for all Pandora FMS Agent files..."
+chmod 700 $PANDORA_BIN
+chmod 700 $PANDORA_EXEC_BIN
+#~ chmod 600 $PANDORA_HOME/pandora_agent.conf
+chmod -R 700 $PANDORA_HOME/plugins
+chown -R root $PANDORA_HOME
+chmod 640 $PANDORA_LOG
+chgrp root $PANDORA_LOG
+chown -R root:root $PANDORA_BIN
+chown -R root:root $PANDORA_EXEC_BIN
+
+echo "Enabling start-up agent daemon";
+if [ -x `command -v systemctl` ]; then
+  systemctl daemon-reload
+  systemctl enable pandora_agent_daemon
+else
+  update-rc.d pandora_agent_daemon defaults
+fi
+
+echo "Please, now setup the $PANDORA_HOME/pandora_agent.conf and before start the pandora_agent_daemon service"

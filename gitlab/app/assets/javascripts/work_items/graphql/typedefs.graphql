@@ -1,0 +1,38 @@
+enum LocalWidgetType {
+  ASSIGNEES
+}
+
+interface LocalWorkItemWidget {
+  type: LocalWidgetType!
+}
+
+type LocalWorkItemAssignees implements LocalWorkItemWidget {
+  type: LocalWidgetType!
+  nodes: [UserCore]
+}
+
+extend type WorkItem {
+  mockWidgets: [LocalWorkItemWidget]
+}
+
+input LocalUserInput {
+  id: ID!
+  name: String
+  username: String
+  webUrl: String
+  avatarUrl: String
+}
+
+input LocalUpdateWorkItemInput {
+  id: WorkItemID!
+  assignees: [LocalUserInput!]
+}
+
+type LocalWorkItemPayload {
+  workItem: WorkItem!
+  errors: [String!]
+}
+
+extend type Mutation {
+  localUpdateWorkItem(input: LocalUpdateWorkItemInput!): LocalWorkItemPayload
+}

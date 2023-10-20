@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Repository last commit component renders commit widget 1`] = `
+<commit-info-stub
+  commit="[object Object]"
+>
+  <div
+    class="commit-actions gl-align-items-center gl-display-flex gl-flex-align gl-flex-direction-row"
+  >
+    <div
+      class="gl-ml-5"
+    >
+      <ci-badge-link-stub
+        aria-label="Pipeline: failed"
+        class="js-commit-pipeline"
+        details-path="https://test.com/pipeline"
+        showtooltip="true"
+        size="md"
+        status="[object Object]"
+        uselink="true"
+      />
+    </div>
+    <gl-button-group-stub
+      class="gl-ml-4 js-commit-sha-group"
+    >
+      <gl-button-stub
+        buttontextclasses=""
+        category="primary"
+        class="gl-font-monospace"
+        data-testid="last-commit-id-label"
+        icon=""
+        label="true"
+        size="medium"
+        variant="default"
+      >
+        12345678
+      </gl-button-stub>
+      <clipboard-button-stub
+        category="secondary"
+        class="input-group-text"
+        size="medium"
+        text="123456789"
+        title="Copy commit SHA"
+        tooltipplacement="top"
+        variant="default"
+      />
+    </gl-button-group-stub>
+  </div>
+</commit-info-stub>
+`;

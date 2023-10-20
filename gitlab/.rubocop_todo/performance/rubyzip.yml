@@ -1,0 +1,4 @@
+---
+Performance/Rubyzip:
+  Exclude:
+    - 'app/services/packages/nuget/metadata_extraction_service.rb'

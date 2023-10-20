@@ -1,0 +1,125 @@
+# frozen_string_literal: true
+
+REVIEW_ROULETTE_SECTION = <<MARKDOWN
+## Reviewer roulette
+MARKDOWN
+
+CATEGORY_TABLE = <<MARKDOWN
+
+Changes that require review have been detected!
+
+Please refer to the table below for assigning reviewers and maintainers suggested by Danger in the specified category:
+
+| Category | Reviewer | Maintainer |
+| -------- | -------- | ---------- |
+MARKDOWN
+
+POST_TABLE_MESSAGE = <<MARKDOWN
+
+**Please check reviewer's status!**
+- ![available](https://gitlab-org.gitlab.io/gitlab-roulette/status-svg/_success.svg) Reviewer is available!
+- ![unavailable](https://gitlab-org.gitlab.io/gitlab-roulette/status-svg/_alert.svg) Reviewer is unavailable!
+
+Feel free to [override these selections](https://about.gitlab.com/handbook/engineering/projects/#gitlab)
+if you think someone else would be better-suited
+or use the [GitLab Review Workload Dashboard](https://gitlab-org.gitlab.io/gitlab-roulette/)
+to find other available reviewers.
+
+To read more on how to use the reviewer roulette, please take a look at the
+[Engineering workflow](https://about.gitlab.com/handbook/engineering/workflow/#basics)
+and [code review guidelines](https://docs.gitlab.com/ee/development/code_review.html).
+Please consider assigning a reviewer or maintainer who is a
+[domain expert](https://about.gitlab.com/handbook/engineering/projects/#gitlab) in the area of the merge request.
+
+Once you've decided who will review this merge request, assign them as a reviewer!
+Danger does not automatically notify them for you.
+MARKDOWN
+
+NO_SUGGESTIONS = <<MARKDOWN
+
+There are no reviewer and maintainer suggestions for the changes in this MR.
+MARKDOWN
+
+UNKNOWN_FILES_MESSAGE = <<MARKDOWN
+### Uncategorized files
+
+These files couldn't be categorized, so Danger was unable to suggest a reviewer.
+Please consider creating a merge request to
+[add support](https://gitlab.com/gitlab-org/gitlab/blob/master/tooling/danger/project_helper.rb)
+for them.
+MARKDOWN
+
+def group_not_available_template(slack_channel, gitlab_group)
+  <<~TEMPLATE.strip
+    No engineer is available for automated assignment, please reach out to the `#{slack_channel}` Slack channel or mention `#{gitlab_group}` for assistance.
+  TEMPLATE
+end
+
+OPTIONAL_REVIEW_TEMPLATE = '%{role} review is optional for %{category}'
+NOT_AVAILABLE_TEMPLATES = {
+  default: 'No %{role} available',
+  analytics_instrumentation: group_not_available_template('#g_analyze_analytics_instrumentation', '@gitlab-org/analytics-section/analytics-instrumentation/engineers'),
+  import_integrate_be: group_not_available_template('#g_manage_import_and_integrate', '@gitlab-org/manage/import-and-integrate'),
+  import_integrate_fe: group_not_available_template('#g_manage_import_and_integrate', '@gitlab-org/manage/import-and-integrate'),
+  remote_development_be: group_not_available_template('#f_remote_development', '@gitlab-org/maintainers/remote-development/backend')
+}.freeze
+
+def note_for_spin_role(spin, role, category)
+  template = NOT_AVAILABLE_TEMPLATES[category] || NOT_AVAILABLE_TEMPLATES[:default]
+
+  note =
+    if spin.optional_role == role
+      OPTIONAL_REVIEW_TEMPLATE % { role: role.capitalize, category: helper.label_for_category(spin.category) }
+    else
+      spin.public_send(role)&.markdown_name(author: roulette.team_mr_author) # rubocop:disable GitlabSecurity/PublicSend
+    end
+
+  note || template % { role: role }
+end
+
+def markdown_row_for_spin(category, spin)
+  maintainer_note = note_for_spin_role(spin, :maintainer, category)
+  reviewer_note = note_for_spin_role(spin, :reviewer, category)
+
+  "| #{helper.label_for_category(category)} | #{reviewer_note} | #{maintainer_note} |"
+end
+
+changes = helper.changes_by_category
+
+# Ignore any files that are known but uncategorized. Prompt for any unknown files
+changes.delete(:none)
+# To reinstate roulette for documentation, remove this line.
+changes.delete(:docs)
+# No special review for changelog needed and changelog was never a label.
+changes.delete(:changelog)
+# No special review for feature flags needed.
+changes.delete(:feature_flag)
+
+categories = roulette.prepare_categories(changes.keys - [:unknown])
+
+# Skip specialty reviews for stable branch MRs since they have already been merged to the default branch
+categories.subtract([:database, :ux, :analytics_instrumentation]) if stable_branch.valid_stable_branch?
+
+if changes.any? || roulette.required_approvals.any?
+  random_roulette_spins = roulette.spin(nil, categories)
+
+  rows = random_roulette_spins.map do |spin|
+    markdown_row_for_spin(spin.category, spin)
+  end
+
+  roulette.required_approvals.each do |approval|
+    rows << markdown_row_for_spin(approval.category, approval.spin)
+  end
+
+  markdown(REVIEW_ROULETTE_SECTION)
+
+  if rows.empty?
+    markdown(NO_SUGGESTIONS)
+  else
+    markdown(CATEGORY_TABLE + rows.join("\n"))
+    markdown(POST_TABLE_MESSAGE)
+  end
+
+  unknown = changes.fetch(:unknown, [])
+  markdown(UNKNOWN_FILES_MESSAGE + helper.markdown_list(unknown)) unless unknown.empty?
+end

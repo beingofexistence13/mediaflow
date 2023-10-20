@@ -1,0 +1,44 @@
+#import "~/graphql_shared/fragments/user.fragment.graphql"
+
+fragment ListItemShared on CiRunner {
+  id
+  description
+  runnerType
+  shortSha
+  version
+  paused
+  locked
+  jobCount
+  tagList
+  createdAt
+  createdBy {
+    ...User
+  }
+  contactedAt
+  status
+  jobExecutionStatus
+  userPermissions {
+    updateRunner
+    deleteRunner
+  }
+  managers(first: 1) {
+    count
+    nodes {
+      ipAddress
+    }
+  }
+  groups(first: 1) {
+    nodes {
+      id
+      name
+      fullName
+      webUrl
+    }
+  }
+  ownerProject {
+    id
+    name
+    nameWithNamespace
+    webUrl
+  }
+}

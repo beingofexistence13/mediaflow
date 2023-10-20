@@ -1,0 +1,17 @@
+- page_title _("Issues")
+- @breadcrumb_link = issues_dashboard_path(assignee_username: current_user.username)
+- add_page_specific_style 'page_bundles/issuable_list'
+- add_page_specific_style 'page_bundles/dashboard'
+= content_for :meta_tags do
+  = auto_discovery_link_tag(:atom, safe_params.merge(rss_url_options).to_h, title: "#{current_user.name} issues")
+
+= render_dashboard_ultimate_trial(current_user)
+
+.page-title-holder.gl-display-flex.gl-align-items-center
+  %h1.page-title.gl-font-size-h-display= _('Issues')
+
+  - if current_user
+    .page-title-controls
+      = render 'shared/new_project_item_vue_select'
+
+.js-issues-dashboard{ data: dashboard_issues_list_data(current_user) }

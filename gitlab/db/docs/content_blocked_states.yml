@@ -1,0 +1,9 @@
+---
+table_name: content_blocked_states
+classes: []
+feature_categories:
+- source_code_management
+description: JiHu only. Keeps list of restricted blobs.
+introduced_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/72124
+milestone: '14.5'
+gitlab_schema: gitlab_main

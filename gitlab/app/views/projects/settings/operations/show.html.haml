@@ -1,0 +1,8 @@
+- page_title _('Monitor Settings')
+- breadcrumb_title _('Monitor Settings')
+- @force_desktop_expanded_sidebar = true
+
+= render 'projects/settings/operations/error_tracking'
+= render 'projects/settings/operations/alert_management'
+= render 'projects/settings/operations/incidents'
+= render_if_exists 'projects/settings/operations/status_page'

@@ -1,0 +1,18 @@
+query getBlobControls($projectPath: ID!, $filePath: String!, $ref: String!, $refType: RefType) {
+  project(fullPath: $projectPath) {
+    id
+    repository {
+      blobs(paths: [$filePath], ref: $ref, refType: $refType) {
+        nodes {
+          id
+          findFilePath
+          blamePath
+          historyPath
+          permalinkPath
+          storedExternally
+          externalStorage
+        }
+      }
+    }
+  }
+}

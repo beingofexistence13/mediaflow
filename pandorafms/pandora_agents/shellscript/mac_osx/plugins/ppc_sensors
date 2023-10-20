@@ -1,0 +1,28 @@
+###############################################################################
+#
+# Copyright (c) 2007-2008  Evi Vanoost  <vanooste@rcbi.rochester.edu>
+#
+# ppc_sensors: A quick shell script that uses the ioreg command on Mac OS X to 
+#           find and display the status and information of all sensors. As far
+#           as I know this doesn't work on Intel machines except for the video 
+#	    card sensors. If you find a way to read out the machine sensors on
+#	    Intel machines, please let me know.
+#
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 3 of the License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.  
+#
+###############################################################################
+
+# ================================
+# Temperature monitoring Mac OS X
+# ===============================
+
+echo `ioreg -n IOHWSensor | awk '/location/ || /current-value/ || /"type"/' | sed -e 's/\n//' -e 's/[^"]*"//' -e 's/" =//' -e 's/"//g' | awk '{ d=($2/65536); if ($1=="current-value") print "<module><data>" substr(d,1,7) "</data>"; if ($1=="location") print "<name>" $2 " " $3 " " $4 " "  $5 "</name><type>generic_data</type></module>";}'`
+

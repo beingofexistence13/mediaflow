@@ -1,0 +1,20 @@
+- breadcrumb_title _("Repository Settings")
+- page_title _("Repository")
+- deploy_token_description = s_('DeployTokens|Deploy tokens allow access to packages, your repository, and registry images.')
+- @force_desktop_expanded_sidebar = true
+
+= render "projects/branch_defaults/show"
+= render "projects/branch_rules/show"
+= render_if_exists "projects/push_rules/index"
+= render "projects/mirrors/mirror_repos"
+
+-# Protected branches & tags use a lot of nested partials.
+-# The shared parts of the views can be found in the `shared` directory.
+-# Those are used throughout the actual views. These `shared` views are then
+-# reused in EE.
+= render "projects/settings/repository/protected_branches", protected_branch_entity: @project
+= render "shared/deploy_tokens/index", group_or_project: @project, description: deploy_token_description
+= render 'shared/deploy_keys/index'
+= render "projects/cleanup/show"
+
+= render_if_exists 'shared/promotions/promote_repository_features'

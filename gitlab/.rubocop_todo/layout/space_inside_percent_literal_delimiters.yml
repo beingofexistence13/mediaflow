@@ -1,0 +1,5 @@
+---
+# Cop supports --autocorrect.
+Layout/SpaceInsidePercentLiteralDelimiters:
+  Exclude:
+    - 'spec/deprecation_toolkit_env.rb'

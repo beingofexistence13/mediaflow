@@ -1,0 +1,24 @@
+---
+data_category: operational
+key_path: counts.network_policy_drops
+description: Cumulative count of packets dropped by Cilium (Container Network Security)
+  since Usage Ping was last reported
+product_section: sec
+product_stage: protect_stage_was_removed
+product_group: container_security_group_was_removed
+value_type: number
+status: removed
+removed_by_url: https://gitlab.com/gitlab-org/gitlab/-/merge_requests/86351
+milestone_removed: "15.0"
+time_frame: all
+data_source: redis
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type:
+- customer_health_score
+milestone: "<13.9"

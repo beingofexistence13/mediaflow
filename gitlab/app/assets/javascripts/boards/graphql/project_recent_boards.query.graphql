@@ -1,0 +1,11 @@
+query project_recent_boards($fullPath: ID!) {
+  project(fullPath: $fullPath) {
+    id
+    recentIssueBoards {
+      nodes {
+        id
+        name
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+---
+data_category: optional
+key_path: counts.kubernetes_agent_k8s_api_proxy_request
+description: Count of Kubernetes API proxy requests
+product_section: ops
+product_stage: deploy
+product_group: environments
+product_category: deployment_management
+value_type: number
+status: active
+milestone: '13.12'
+introduced_by_url:
+time_frame: all
+data_source: redis
+instrumentation_class: RedisMetric
+options:
+  prefix: kubernetes_agent
+  event: k8s_api_proxy_request
+distribution:
+- ce
+- ee
+tier:
+- free
+- premium
+- ultimate
+performance_indicator_type: []

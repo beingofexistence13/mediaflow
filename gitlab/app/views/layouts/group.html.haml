@@ -1,0 +1,27 @@
+- page_title       @group.name
+- page_description @group.description_html unless page_description
+- header_title     group_title(@group)     unless header_title
+- nav "group"
+- display_subscription_banner!
+- @left_sidebar = true
+- base_layout = local_assigns[:base_layout]
+
+- content_for :flash_message do
+  = dispensable_render_if_exists "groups/storage_enforcement_alert", context: @group
+  = dispensable_render_if_exists "shared/namespace_storage_limit_alert", context: @group
+  = dispensable_render_if_exists "shared/namespace_combined_storage_users_alert", context: @group
+
+- content_for :page_specific_javascripts do
+  - if current_user
+    = javascript_tag do
+      :plain
+        window.uploads_path = "#{group_uploads_path(@group)}";
+
+- content_for :before_content do
+  = render 'groups/invite_members_modal', group: @group
+
+= dispensable_render_if_exists "shared/web_hooks/group_web_hook_disabled_alert"
+= dispensable_render_if_exists "shared/free_user_cap_alert", source: @group
+= dispensable_render_if_exists "shared/unlimited_members_during_trial_alert", resource: @group
+
+= render template: base_layout || "layouts/application"

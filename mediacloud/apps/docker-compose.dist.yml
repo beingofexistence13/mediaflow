@@ -1,0 +1,2546 @@
+#
+# Media Cloud backend
+# ===================
+#
+# Deploy by running:
+#
+#     docker stack deploy -c docker-compose.mediacloud.yml mediacloud
+#
+# on one of the Docker Swarm's managers (preferably the leader):
+#
+#     docker node ls | grep Leader
+#
+
+version: "3.7"
+
+
+#
+# Configuration for "common"-derived images
+# =========================================
+#
+x-common-configuration: &common-configuration
+
+    # One or more semicolon-separated storage methods to store downloads in.
+    #
+    # Supported locations:
+    #
+    # * "postgresql" -- store downloads in the PostgreSQL database,
+    #   "raw_downloads" table
+    # * "amazon_s3" -- store downloads in Amazon S3
+    #
+    # Default is "postgresql" which stores downloads directly in the PostgreSQL
+    # database.
+    #
+    # The path of the last download storage method listed below will be stored
+    # in "downloads.path" database column.
+    MC_DOWNLOADS_STORAGE_LOCATIONS: "postgresql"
+
+    # Read all non-inline ("content") downloads from S3
+    MC_DOWNLOADS_READ_ALL_FROM_S3: "0"
+
+    # Fallback PostgreSQL downloads to Amazon S3 (if download doesn't exist in
+    # PostgreSQL storage, S3 will be tried instead)
+    MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3: "0"
+
+    # Enable local Amazon S3 download cache
+    MC_DOWNLOADS_CACHE_S3: "0"
+
+    # (optional) S3 download storage access key ID
+    #MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+
+    # (optional) S3 download storage secret access key
+    #MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+    # (optional) S3 download storage bucket name
+    #MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME: "mediacloud-downloads"
+
+    # (optional) S3 download storage directory name (prefix)
+    #MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "downloads"
+   
+    # amazon config for the public store (topic_maps, timespan_files, snapshot_files)
+    #MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID: "ASFASDF"
+    #MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY: "ASDFASDFADFADSF"
+    #MC_PUBLIC_AMAZON_S3_BUCKET_NAME: "mediacloud-public"
+
+    # set to 's3' for production after setting the above info or set to 'postgresql' for testing
+    MC_PUBLIC_STORE_TYPE: "s3"
+
+    # this should be a large random value so that the urls generate by the public store cannot be guessed
+    MC_PUBLIC_STORE_SALT: "GENERATE_UNIQUE_SALT"
+
+    # s3 directory under which to store the public s3 store objects
+    #MC_PUBLIC_AMAZON_S3_DIRECTORY_NAME: "production"
+
+    # "From:" email address when sending emails
+    MC_EMAIL_FROM_ADDRESS: "info@mediacloud.org"
+
+    # Email address to point to in List-Unsubscribe email header.
+    # Technically we don't have a straightforward "unsubscribe" endpoint, but our 
+    # emails are more likely to be marked spam if we don't have such a header, so
+    # we make the email subject "Delete account and unsubscribe" in 
+    # mediawords/util/config/common.py
+    # example value = support@example.com 
+    MC_EMAIL_UNSUBSCRIBE: "support@example.com"
+
+    # Fail all HTTP requests that match the following pattern, e.g.
+    # "^https?://[^/]*some-website.com"
+    MC_USERAGENT_BLACKLIST_URL_PATTERN: ""
+
+    # (optional) JSON array of dictionaries of domains that might need HTTP auth credentials
+    # to work
+    #
+    # Example:
+    #
+    #     [
+    #         {
+    #             "domain": "domain.com",
+    #             "username": "username1",
+    #             "password": "password1"
+    #         },
+    #         {
+    #             "domain": "domain2.org",
+    #             "username": "username2",
+    #             "password": "password2"
+    #         }
+    #     ]
+    #
+    # Make sure to:
+    #
+    # * use double quotes instead of single quotes, as per JSON spec;
+    # * avoid double newlines as those would get parsed to a single newline and
+    #   break the environment variable export for Cron jobs;
+    # * escape dollar signs ("$") by using double dollar signs ("$$"), if any.
+    #
+    MC_USERAGENT_AUTHENTICATED_DOMAINS: '
+        [
+        ]
+    '
+
+    # parallel_get() parallel connection count
+    MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL: "10"
+
+    # parallel_get() connection timeout, in seconds
+    MC_USERAGENT_PARALLEL_GET_TIMEOUT: "90"
+
+    # parallel_get() per-domain timeout, in seconds
+    MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT: "1"
+
+    # (Used by apps which inherit from "topics-base")
+    # Comma-separated email addresses to inform about topic updates
+    MC_TOPICS_BASE_TOPIC_ALERT_EMAILS: "topicupdates@mediacloud.org, slackupdates@mediacloud.org"
+
+
+#
+# Twitter API configuration
+# =========================
+#
+x-twitter-api-configuration: &twitter-api-configuration
+
+    # Twitter API consumer key
+    MC_TWITTER_CONSUMER_KEY: ""
+
+    # Twitter API consumer secret
+    MC_TWITTER_CONSUMER_SECRET: ""
+
+    # Twitter API access token
+    MC_TWITTER_ACCESS_TOKEN: ""
+
+    # Twitter API access token secret
+    MC_TWITTER_ACCESS_TOKEN_SECRET: ""
+
+
+#
+# Brandwatch API configuration
+# ============================
+#
+x-brandwatch-api-configuration: &brandwatch-api-configuration
+
+    MC_BRANDWATCH_USER: ""
+
+    # You need to escape dollar signs ("$") by using double dollar signs ("$$"), if any.
+    MC_BRANDWATCH_PASSWORD: ""
+
+
+#
+# Solr shard base service
+# =======================
+#
+# Solr shards are not easily replicatable (because resharding would have to be
+# done manually), also every Solr shard has to have its very own named volume
+# to write the data to, so instead of replicating Solr shards with
+# "deploy/replicas", we define every shard as its own independent service.
+#
+x-solr-shard_base:   &solr-shard_base
+    image: gcr.io/mcback/solr-shard:release
+    init: true
+    environment:
+        # Shard count (every individual shard needs to know the total count)
+        #
+        # (keep in sync with how many shard services get actually defined in
+        # the "services" section, e.g. solr-shard-01, solr-shard-02,
+        # ..., solr-shard-24)
+        MC_SOLR_SHARD_COUNT: "24"
+    depends_on:
+        - solr-zookeeper
+    expose:
+        - "8983"
+    networks:
+        - default
+
+# Default resources for every Solr shard
+x-solr-shard_base_deploy_resources:  &solr-shard_base_deploy_resources
+    # Every shard runs as its own independent, non-replicated service
+    resources:
+        limits:
+            # CPU core limit
+            #
+            # (each node has 32 cores and will be running 8 shards
+            # each, so 32 / 8 = 4)
+            cpus: "4"
+            # RAM limit
+            #
+            # (each node has 192 GB of RAM and will be running 8 shards
+            # each, so 192 / 8 = 24)
+            memory: 24G
+
+# Placement constraints for Solr shards that run on host #1
+x-solr-shard_base_deploy_placement_host1:   &solr-shard_base_deploy_placement_host1
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host1 == true
+
+# Placement constraints for Solr shards that run on host #2
+x-solr-shard_base_deploy_placement_host2:   &solr-shard_base_deploy_placement_host2
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host2 == true
+
+# Placement constraints for Solr shards that run on host #3
+x-solr-shard_base_deploy_placement_host3:   &solr-shard_base_deploy_placement_host3
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host3 == true
+
+
+#
+# Misc. apps placement constraint
+# ===============================
+#
+# To be applied to every service that's not bound to run on a specific host.
+# This is needed to prevent misc. services from running on hosts which are to
+# be reserved for a particular service, e.g. we might want to run only
+# "postgresql-server" app on a specific server.
+#
+x-misc-apps_deploy_placement_constraints:   &misc-apps_deploy_placement_constraints
+    placement:
+        constraints:
+            # Must run on a host on which misc. apps are configured to run on
+            - node.labels.role-misc-apps == true
+
+
+#
+# Mitigate IPVS timeouts
+# ======================
+#
+# See https://success.docker.com/article/ipvs-connection-timeout-issue
+#
+x-endpoint-mode-dnsrr:   &endpoint-mode-dnsrr
+    endpoint_mode: dnsrr
+
+
+#
+# Services
+# ========
+#
+services:
+
+    #
+    # CLIFF annotator service
+    # -----------------------
+    #
+    cliff-annotator:
+        image: gcr.io/mcback/cliff-annotator:release
+        init: true
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "6G"
+
+    #
+    # Webapp proxy to CLIFF annotator service
+    # ---------------------------------------
+    #
+    cliff-annotator-webapp-proxy:
+        image: gcr.io/mcback/cliff-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - cliff-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8090:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+    
+    # CLIFF fetch annotation and tag
+    # -----------------------
+    #
+    cliff-update-story-tags:
+        image: gcr.io/mcback/cliff-fetch-annotation-and-tag:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # CLIFF version tag
+            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.6.1"
+            # Tag set to use for geographical name entities
+            MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
+            # Tag set to use for organization name entities
+            MC_CLIFF_ORGANIZATIONS_TAG_SET: "cliff_organizations"
+            # Tag set to use for person name entities
+            MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
+        depends_on:
+            - cliff-annotator
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            # Auto-restart on crashes
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+    
+    #
+    # AP crawler
+    # ----------
+    #
+    crawler-ap:
+        image: gcr.io/mcback/crawler-ap:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # AP API key
+            MC_CRAWLER_AP_API_KEY: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Crawler fetcher
+    # ---------------
+    #
+    crawler-fetcher:
+        image: gcr.io/mcback/crawler-fetcher:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Univision API client ID
+            MC_UNIVISION_CLIENT_ID: ""
+            # Univision API client secret (secret key)
+            MC_UNIVISION_CLIENT_SECRET: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Crawler provider
+    # ----------------
+    #
+    crawler-provider:
+        image: gcr.io/mcback/crawler-provider:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # Generate daily RSS dumps Cron job
+    # ---------------------------------
+    #
+    cron-generate-daily-rss-dumps:
+        image: gcr.io/mcback/cron-generate-daily-rss-dumps:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        volumes:
+            # Shared with "webapp-httpd" container:
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the same host as the webapp-httpd server because they will be
+                    # sharing the volume with generated static RSS dumps
+                    - node.labels.role-webapp-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # It appears that sometimes the script has to do huge dumps, and it does all of it in RAM
+                    memory: "4GB"
+
+    #
+    # Generate media health report Cron job
+    # -------------------------------------
+    #
+    cron-generate-media-health:
+        image: gcr.io/mcback/cron-generate-media-health:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate daily / weekly user summary Cron job
+    # ---------------------------------------------
+    #
+    cron-generate-user-summary:
+        image: gcr.io/mcback/cron-generate-user-summary:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Print long running job states
+    # -----------------------------
+    #
+    cron-print-long-running-job-states:
+        image: gcr.io/mcback/cron-print-long-running-job-states:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Refresh stats Cron job
+    # ----------------------
+    #
+    cron-refresh-stats:
+        image: gcr.io/mcback/cron-refresh-stats:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Add due media to the rescraping queue Cron job
+    # ----------------------------------------------
+    #
+    cron-rescrape-due-media:
+        image: gcr.io/mcback/cron-rescrape-due-media:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Report rescraping changes Cron job
+    # ----------------------------------
+    #
+    cron-rescraping-changes:
+        image: gcr.io/mcback/cron-rescraping-changes:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Set media primary language Cron job
+    # -----------------------------------
+    #
+    cron-set-media-primary-language:
+        image: gcr.io/mcback/cron-set-media-primary-language:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Set media subject country Cron job
+    # -----------------------------------
+    #
+    cron-set-media-subject-country:
+        image: gcr.io/mcback/cron-set-media-subject-country:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # ELK Elasticsearch (log indexing)
+    # --------------------------------
+    #
+    elk-elasticsearch:
+        image: gcr.io/mcback/elk-elasticsearch:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # S3 credentials for Elasticsearch snapshot storage:
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "mediacloud-test-elk-elasticsearch-snapshots"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "snapshots"
+        expose:
+            # HTTP transport
+            - "9200"
+            # TCP transport
+            - "9300"
+        volumes:
+            - vol_elk_elasticsearch_data:/var/lib/elasticsearch/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with ELK Elasticsearch data volume
+                    - node.labels.role-elk-elasticsearch == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: "8G"
+
+    #
+    # ELK Filebeat (plain text log collection)
+    # ----------------------------------------
+    #
+    elk-filebeat:
+        image: gcr.io/mcback/elk-filebeat:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        volumes:
+            # Mount log directories, Docker directories and socket for Filebeat to
+            # be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/:/var/log/:ro
+            - /var/lib/docker/:/var/lib/docker/:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on every node to be able to collect logs from each
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # ELK Journalbeat (journald log collection)
+    # -----------------------------------------
+    #
+    elk-journalbeat:
+        image: gcr.io/mcback/elk-journalbeat:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        volumes:
+            # Mount journald log directory for Journalbeat to be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/journal/:/var/log/journal/:ro
+            # - /run/systemd:/run/systemd/:ro
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on every node to be able to collect logs from each
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # ELK Kibana (web UI)
+    # ------------------------------
+    #
+    elk-kibana:
+        image: gcr.io/mcback/elk-kibana:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # Web server
+            - "5601"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "5601:5601"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "8G"
+
+    #
+    # Extract and vector stories
+    # --------------------------
+    #
+    extract-and-vector:
+        image: gcr.io/mcback/extract-and-vector:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - extract-article-from-page
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 24
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Extract article HTML from page HTML
+    # -----------------------------------
+    #
+    extract-article-from-page:
+        image: gcr.io/mcback/extract-article-from-page:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # HTTP extraction service
+            - 8080
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Fetch story stats from Facebook
+    # -------------------------------
+    #
+    facebook-fetch-story-stats:
+        image: gcr.io/mcback/facebook-fetch-story-stats:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Facebook application ID
+            MC_FACEBOOK_APP_ID: ""
+            # Facebook application secret
+            MC_FACEBOOK_APP_SECRET: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 4
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Import stories into Solr
+    # ------------------------
+    #
+    import-solr-data:
+        image: gcr.io/mcback/import-solr-data:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Stories to import into Solr on a single run
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # If importer script is playing catch up and has to import
+                    # many stories at once, it will require more memory
+                    memory: "8G"
+
+    #
+    # Import stories by scraping Feedly
+    # ---------------------------------
+    #
+    import-stories-feedly:
+        image: gcr.io/mcback/import-stories-feedly:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            # Writes stories to PostgreSQL
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit (uses quite a lot of it until it OOMs)
+                    memory: "4G"
+
+    #
+    # OpenDKIM server
+    # ---------------
+    #
+    mail-opendkim-server:
+        image: gcr.io/mcback/mail-opendkim-server:release
+        init: true
+        networks:
+            - default
+        environment:
+            # Top-level domain to use for signing emails, e.g. "mediacloud.org"
+            MC_MAIL_OPENDKIM_DOMAIN: "mediacloud.org"
+        expose:
+            # OpenDKIM port used by Postfix
+            - "12301"
+        volumes:
+            - vol_opendkim_config:/etc/opendkim/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with OpenDKIM data volume
+                    - node.labels.role-mail-opendkim == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "128M"
+
+    #
+    # Postfix server
+    # ---------------
+    #
+    mail-postfix-server:
+        image: gcr.io/mcback/mail-postfix-server:release
+        init: true
+        networks:
+            - default
+        environment:
+            # Fully qualified domain name of a host server that will be used for HELO messages.
+            #
+            # Must both resolve and have a PTR record, i.e. if an email sent by us arrives from
+            # 1.2.3.4, and that host has a hostname smtp.mediacloud.org, then both:
+            #
+            # 1) Sending IP address should have a PTR record that points to FQDN:
+            #
+            #     $ nslookup 1.2.3.4
+            #     <...>
+            #     4.3.2.1.in-addr.arpa  name = smtp.mediacloud.org
+            #
+            # 2) The FQDN should resolve to sending IP address:
+            #
+            #     $ nslookup smtp.mediacloud.org
+            #     <...>
+            #     Non-authoritative answer:
+            #     Name:   server.mediacloud.org
+            #     Address: 1.2.3.4
+            #
+            MC_MAIL_POSTFIX_FQDN: "smtp.mediacloud.org"
+        depends_on:
+            # Signs emails using OpenDKIM
+            - mail-opendkim-server
+        expose:
+            # Expose SMTP to mail senders
+            - "25"
+        volumes:
+            - vol_postfix_data:/var/lib/postfix/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Postfix data volume
+                    - node.labels.role-mail-postfix == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "128M"
+
+    #
+    # Munin Cron stats collector
+    # --------------------------
+    #
+    munin-cron:
+        image: gcr.io/mcback/munin-cron:release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
+        networks:
+            - default
+        depends_on:
+            # Reads data from Munin node
+            - munin-node
+        environment:
+            MC_MUNIN_CRON_ALERT_EMAIL: "FIXME@mediacloud.org"
+        volumes:
+            # Shared with "munin-fastcgi-graph" container:
+            - vol_munin_data:/var/lib/munin/
+            # Shared with "munin-httpd" container:
+            - vol_munin_html:/var/cache/munin/www/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the same host as munin-httpd as they share two volumes
+                    - node.labels.role-munin-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Munin FastCGI graph generator
+    # -----------------------------
+    #
+    munin-fastcgi-graph:
+        image: gcr.io/mcback/munin-fastcgi-graph:release
+        init: true
+        networks:
+            - default
+        expose:
+            # FastCGI port
+            - "22334"
+        depends_on:
+            # Reads data generated by Munin stats collector
+            - munin-cron
+        volumes:
+            # Shared with "munin-cron" container:
+            - vol_munin_data:/var/lib/munin/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the same host as munin-cron as they share two volumes
+                    - node.labels.role-munin-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Munin HTTP server
+    # -----------------
+    #
+    munin-httpd:
+        image: gcr.io/mcback/munin-httpd:release
+        init: true
+        networks:
+            - default
+        expose:
+            # Web UIs port
+            - "4948"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "4948:4948"
+        depends_on:
+            # Uses FastCGI worker to generate graphs
+            - munin-fastcgi-graph
+        volumes:
+            # Shared with "munin-cron" container:
+            - vol_munin_html:/var/cache/munin/www/
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            placement:
+                constraints:
+                    # Must run on the same host as munin-cron as they share two volumes
+                    - node.labels.role-munin-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Munin node
+    # ----------
+    #
+    munin-node:
+        image: gcr.io/mcback/munin-node:release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
+        networks:
+            - default
+        depends_on:
+            # Monitors data on PostgreSQL
+            - postgresql-pgbouncer
+            # Monitors data on Solr
+            - solr-shard-01
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # NYT-Based News Tagger service
+    # -----------------------------
+    #
+    nytlabels-annotator:
+        image: gcr.io/mcback/nytlabels-annotator:release
+        init: true
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # onnxruntime works considerably faster on multiple threads:
+                    cpus: "8"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Webapp proxy to NYTLabels annotator service
+    # -------------------------------------------
+    #
+    nytlabels-annotator-webapp-proxy:
+        image: gcr.io/mcback/nytlabels-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - nytlabels-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8091:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+    
+    #
+    # NYTLabels fetch annotation and tag
+    # -----------------------
+    #
+    nytlabels-fetch-annotation-and-tag:
+        image: gcr.io/mcback/nytlabels-fetch-annotation-and-tag:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # NYTLabels version tag
+            MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
+            # Tag set to use for NYTLabels-derived tags
+            MC_NYTLABELS_TAG_SET: "nyt_labels"
+        depends_on:
+            - nytlabels-annotator
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Fetch story podcast episode and store it in GCS (RabbitMQ worker)
+    # -----------------------------------------------------------------
+    #
+    podcast-transcribe-episode-rabbitmq-worker:
+        image: gcr.io/mcback/podcast-transcribe-episode:release
+        command: "rabbitmq_worker.py"
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+            - temporal-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+
+    #
+    # Fetch story podcast episode and store it in GCS (Temporal worker)
+    # -----------------------------------------------------------------
+    #
+    podcast-transcribe-episode-temporal-worker:
+        image: gcr.io/mcback/podcast-transcribe-episode:release
+        command: "workflow_worker.py"
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # GCS bucket name and path prefix for storing raw, untranscoded enclosure files
+            MC_PODCAST_RAW_ENCLOSURES_BUCKET_NAME: "FIXME"
+            MC_PODCAST_RAW_ENCLOSURES_PATH_PREFIX: "enclosures"
+            # GCS bucket name and path prefix for storing transcoded episodes
+            MC_PODCAST_TRANSCODED_EPISODES_BUCKET_NAME: "FIXME"
+            MC_PODCAST_TRANSCODED_EPISODES_PATH_PREFIX: "episodes"
+            # GCS bucket name and path prefix for storing raw JSON transcripts
+            MC_PODCAST_TRANSCRIPTS_BUCKET_NAME: "FIXME"
+            MC_PODCAST_TRANSCRIPTS_PATH_PREFIX: "transcripts"
+            # Base64-encoded Google Cloud authentication JSON file for a service account that
+            # uploads episodes to Google Cloud Storage and submits Speech API jobs; refer to
+            # doc/podcasts_gc_auth.markdown for instructions on how to create such an
+            # account.
+            #
+            # How to generate Base64 encoded credentials:
+            #
+            #     $ base64 mediacloud-service-account-credentials.json
+            #
+            MC_PODCAST_AUTH_JSON_BASE64: '
+                ewogICAgInR5cGUiOiAic2VydmljZV9hY2NvdW50IiwKICAgICJwcm9qZWN0X2lkIjogImV
+                4YW1wbGUiLAogICAgInByaXZhdGVfa2V5X2lkIjogIjdmMTY5YTIxZDNmODA5NzQzNjRiY2
+                YwOWYyMDQ3ZWEwZWZiNTY4M2EiLAogICAgInByaXZhdGVfa2V5IjogIi0tLS0tQkVHSU4gU
+                FJJVkFURSBLRVktLS0tLVxuPC4uLj5cbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIs
+                CiAgICAiY2xpZW50X2VtYWlsIjogImV4YW1wbGVAZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2N
+                vdW50LmNvbSIsCiAgICAiY2xpZW50X2lkIjogIjEyMyIsCiAgICAiYXV0aF91cmkiOiAiaH
+                R0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL2F1dGgiLAogICAgInRva2VuX
+                3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgICAiYXV0
+                aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29
+                tL29hdXRoMi92MS9jZXJ0cyIsCiAgICAiY2xpZW50X3g1MDlfY2VydF91cmwiOiAiaHR0cH
+                M6Ly93d3cuZ29vZ2xlYXBpcy5jb20vcm9ib3QvdjEvbWV0YWRhdGEveDUwOS9leGFtcGxlJ
+                TQwZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIKfQ==
+            '
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+            - temporal-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "4G"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+
+    #
+    # PgBouncer
+    # ---------
+    #
+    postgresql-pgbouncer:
+        image: gcr.io/mcback/postgresql-pgbouncer:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - postgresql-server
+        expose:
+            - 6432
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # PostgreSQL server
+    # -----------------
+    #
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:release
+        init: true
+        networks:
+            - default
+        environment:
+
+            # (optional) Set to "1" (string "1", not integer 1!) to enable WAL-G
+            # backups to S3; for more information, refer to doc/postgresql_walg.markdown
+            MC_WALG_ENABLE: "1"
+
+            # (required if WAL-G is enabled) S3 Access Key ID:
+            MC_WALG_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+
+            # (required if WAL-G is enabled) S3 Secret Access Key
+            MC_WALG_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+            # (required if WAL-G is enabled) S3 region
+            MC_WALG_S3_REGION: "us-east-1"
+
+            # (required) S3 URI bucket name and prefix (no slash at the end!)
+            MC_WALG_S3_BUCKET_PREFIX: "s3://mediacloud-postgresql-wal-backups-test/postgresql-server-test"
+
+            # (optional) S3 or S3-compatible endpoint
+            # MC_WALG_S3_ENDPOINT: "https://s3.amazonaws.com"
+
+            # (optional) S3 storage class
+            # MC_WALG_S3_STORAGE_CLASS: "STANDARD"
+
+            # (optional) Whether to enable S3 path-style addressing ("true" or "false")
+            # MC_WALG_S3_FORCE_PATH_STYLE: "false"
+
+            # (optional) Use ListObjects instead of ListObjectsV2 ("true" or "false")
+            # MC_WALG_S3_USE_LIST_OBJECTS_V1: "false"
+
+            # (optional) Base64-encoded TLS certificate
+            # MC_WALG_S3_CA_CERT_BASE64: ""
+
+        expose:
+            - 5432
+        # Allow up to 5 minutes for PostgreSQL to stop so that it manages to
+        # flush everything from WAL before quitting; this is supposed to speed
+        # up subsequent restart
+        stop_grace_period: 5m
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/
+            # Provide container with more shared memory than is the default:
+            - type: tmpfs
+              target: /dev/shm
+              tmpfs:
+                size: 68719476736   # 64 GB
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with PostgreSQL data volume
+                    - node.labels.role-postgresql-server == true
+
+    #
+    # Purge PostgreSQL object caches
+    # ------------------------------------
+    #
+    purge-object-caches:
+        image: gcr.io/mcback/purge-object-caches:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # RabbitMQ
+    # --------
+    #
+    rabbitmq-server:
+        image: gcr.io/mcback/rabbitmq-server:release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
+        # and Erlang gets SIGCHLD signals from Docker for whatever reason
+        # making it "forget" about reaping the zombies itself, so we have to
+        # run Tini (Docker's init) for this service:
+        init: true
+        networks:
+            - default
+        expose:
+            - "5672"
+            - "15672"
+        volumes:
+            - vol_rabbitmq_data:/var/lib/rabbitmq/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with RabbitMQ data volume
+                    - node.labels.role-rabbitmq-server == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Proxy to RabbitMQ's management webapp
+    # -------------------------------------
+    #
+    # We'd like to expose the management webapp (port 15672) to host in order
+    # to access the webapp through a SSH tunnel, but then we couldn't use DNSRR
+    # endpoint mode for rabbitmq-server due to published ports, so we have to
+    # proxy to the webapp.
+    #
+    rabbitmq-server-webapp-proxy:
+        image: gcr.io/mcback/rabbitmq-server-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - rabbitmq-server
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "15672:15672"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # (Re)scrape media
+    # ----------------
+    #
+    rescrape-media:
+        image: gcr.io/mcback/rescrape-media:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 2
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Solr shards 01-24
+    # -----------------
+    #
+    solr-shard-01:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_01:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-02:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_02:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-03:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_03:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-04:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_04:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-05:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_05:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-06:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_06:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-07:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_07:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-08:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_08:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-09:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_09:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-10:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_10:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-11:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_11:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-12:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_12:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-13:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_13:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-14:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_14:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-15:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_15:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-16:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_16:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-17:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_17:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-18:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_18:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-19:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_19:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-20:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_20:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-21:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_21:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-22:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_22:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-23:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_23:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-24:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_24:/var/lib/solr/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    #
+    # Proxy to Solr's management webapp
+    # -------------------------------------
+    #
+    # We'd like to expose the management webapp (port 8983) to host in order
+    # to access the webapp through a SSH tunnel, but then we couldn't use DNSRR
+    # endpoint mode for solr-shard-01 due to published ports, so we have to
+    # proxy to the webapp.
+    #
+    solr-shard-webapp-proxy:
+        image: gcr.io/mcback/solr-shard-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - solr-shard-01
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8983:8983"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Solr ZooKeeper
+    # --------------
+    #
+    solr-zookeeper:
+        image: gcr.io/mcback/solr-zookeeper:release
+        init: true
+        networks:
+            - default
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # Temporal Elasticsearch (searching for workflows)
+    # ------------------------------------------------
+    #
+    temporal-elasticsearch:
+        image: gcr.io/mcback/temporal-elasticsearch:release
+        init: true
+        networks:
+            - default
+        expose:
+            - "9200"
+            - "9300"
+        volumes:
+            - vol_temporal_elasticsearch_data:/var/lib/elasticsearch/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal Elasticsearch data volume
+                    - node.labels.role-temporal-elasticsearch == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: "16G"
+
+    #
+    # Temporal Grafana (web UI for Temporal's stats)
+    # ----------------------------------------------
+    #
+    temporal-grafana:
+        image: gcr.io/mcback/temporal-grafana:release
+        init: true
+        networks:
+            - default
+        expose:
+            - "3000"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "3000:3000"
+        volumes:
+            - vol_temporal_grafana_data:/var/lib/grafana/
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            placement:
+                constraints:
+                    # Must run on the host with Temporal Grafana data volume
+                    - node.labels.role-temporal-grafana == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+
+    #
+    # Temporal PostgreSQL (Temporal's main data store)
+    # ------------------------------------------------
+    #
+    temporal-postgresql:
+        image: gcr.io/mcback/temporal-postgresql:release
+        init: true
+        networks:
+            - default
+        environment:
+
+            # (optional) Set to "1" (string "1", not integer 1!) to enable WAL-G
+            # backups to S3; for more information, refer to doc/postgresql_walg.markdown
+            MC_WALG_ENABLE: "1"
+
+            # (required if WAL-G is enabled) S3 Access Key ID:
+            MC_WALG_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+
+            # (required if WAL-G is enabled) S3 Secret Access Key
+            MC_WALG_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+            # (required if WAL-G is enabled) S3 region
+            MC_WALG_S3_REGION: "us-east-1"
+
+            # (required) S3 URI bucket name and prefix (no slash at the end!)
+            MC_WALG_S3_BUCKET_PREFIX: "s3://mediacloud-postgresql-wal-backups-test/temporal-postgresql-test"
+
+            # (optional) S3 or S3-compatible endpoint
+            # MC_WALG_S3_ENDPOINT: "https://s3.amazonaws.com"
+
+            # (optional) S3 storage class
+            # MC_WALG_S3_STORAGE_CLASS: "STANDARD"
+
+            # (optional) Whether to enable S3 path-style addressing ("true" or "false")
+            # MC_WALG_S3_FORCE_PATH_STYLE: "false"
+
+            # (optional) Use ListObjects instead of ListObjectsV2 ("true" or "false")
+            # MC_WALG_S3_USE_LIST_OBJECTS_V1: "false"
+
+            # (optional) Base64-encoded TLS certificate
+            # MC_WALG_S3_CA_CERT_BASE64: ""
+
+        expose:
+            - 5432
+        volumes:
+            - vol_temporal_postgresql_data:/var/lib/postgresql/
+
+            # Provide container with more shared memory than is the default:
+            - type: tmpfs
+              target: /dev/shm
+              tmpfs:
+                size: 4294967296   # 4 GB
+
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal PostgreSQL server data volume
+                    - node.labels.role-temporal-postgresql == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "8"
+                    # RAM limit
+                    memory: "32G"
+
+    #
+    # Temporal Prometheus (Temporal's statistics store)
+    # -------------------------------------------------
+    #
+    temporal-prometheus:
+        image: gcr.io/mcback/temporal-prometheus:release
+        init: true
+        depends_on:
+            - temporal-grafana
+        networks:
+            - default
+        expose:
+            - "9090"
+        volumes:
+            - vol_temporal_prometheus_data:/opt/prometheus/data/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal Prometheus data volume
+                    - node.labels.role-temporal-prometheus == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+
+    #
+    # Temporal server (running stateful workflows)
+    # --------------------------------------------
+    #
+    temporal-server:
+        image: gcr.io/mcback/temporal-server:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - temporal-postgresql
+            - temporal-elasticsearch
+            - temporal-prometheus
+        expose:
+            - 6933
+            - 6934
+            - 6935
+            - 6939
+            - 7233
+            - 7234
+            - 7235
+            - 7239
+        volumes:
+            - vol_temporal_server_archives:/var/lib/temporal/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal server data volume
+                    - node.labels.role-temporal-server == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "8"
+                    # RAM limit
+                    memory: "32G"
+
+    #
+    # Temporal webapp (tracking workflow state)
+    # -----------------------------------------
+    #
+    temporal-webapp:
+        image: gcr.io/mcback/temporal-webapp:release
+        init: true
+        networks:
+            - default
+        expose:
+            - "8088"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8088:8088"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "4G"
+
+    #
+    # Extract story links for a topic
+    # -------------------------------
+    #
+    topics-extract-story-links:
+        image: gcr.io/mcback/topics-extract-story-links:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - extract-article-from-page
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 32
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Fetch link for a topic
+    # ----------------------
+    #
+    topics-fetch-link:
+        image: gcr.io/mcback/topics-fetch-link:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Fetchers are not playing along nicely, let's find out why
+            MC_LOGGING_LEVEL: "DEBUG"
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Fetch Twitter URLs
+    # ------------------
+    #
+    topics-fetch-twitter-urls:
+        image: gcr.io/mcback/topics-fetch-twitter-urls:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate maps for a topic
+    # -------------------------
+    #
+    topics-map:
+        image: gcr.io/mcback/topics-map:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 2
+            resources:
+                limits:
+                    # CPU core limit - big jobs require lots of parallel processing or else take hours
+                    cpus: "8"
+                    # RAM limit - big network analysis jobs require lots of memory or else crash
+                    memory: "8G"
+
+    #
+    # Mine a topic
+    # ------------
+    #
+    topics-mine:
+        image: gcr.io/mcback/topics-mine:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+            <<: *brandwatch-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 4
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Mine a public topic
+    # -------------------
+    #
+    topics-mine-public:
+        image: gcr.io/mcback/topics-mine-public:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+            <<: *brandwatch-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 4
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Snapshot a topic
+    # ----------------
+    #
+    topics-snapshot:
+        image: gcr.io/mcback/topics-snapshot:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Not sure what this is.
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 2
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Webapp (Plackup FastCGI workers)
+    # --------------------------------
+    #
+    webapp-api:
+        image: gcr.io/mcback/webapp-api:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # Plackup FastCGI worker port to be used by webapp_httpd
+            - "9090"
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # FastCGI workers
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Webapp (HTTP server)
+    # --------------------
+    #
+    webapp-httpd:
+        image: gcr.io/mcback/webapp-httpd:release
+        init: true
+        networks:
+            - default
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8082:80"
+        volumes:
+            # Shared with "cron_generate_daily_rss_dumps" container:
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            placement:
+                constraints:
+                    # Has its own role due to a shared volume
+                    - node.labels.role-webapp-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate word2vec snapshot model
+    # ----------------
+    #
+    word2vec-generate-snapshot-model:
+        image: gcr.io/mcback/word2vec-generate-snapshot-model:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 2
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+
+#
+# Networks
+# ========
+#
+networks:
+
+    # Just throw anything to this network. Typically we wouldn't have to even
+    # define it here, but some services use aliases so every service has to be
+    # explicitly added to some sort of a network.
+    default:
+        driver: overlay
+        attachable: true
+
+        ipam:
+            driver: default
+            config:
+                # Docker (Compose?) sometimes defaults to a subnet with only
+                # 255 available addresses
+                #
+                # If you change this subnet, make sure that you update it
+                # elsewhere too, e.g. in "mail-opendkim-server"'s TrustedHosts
+                # or "mail-postfix-server" Dockerfile
+                - subnet: "10.1.0.0/16"
+
+
+#
+# Volumes
+# =======
+#
+volumes:
+
+    # PostgreSQL server's data
+    vol_postgresql_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postgresql_data
+
+    # Solr shard's data
+    vol_solr_shard_data_01:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_01
+
+    vol_solr_shard_data_02:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_02
+
+    vol_solr_shard_data_03:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_03
+
+    vol_solr_shard_data_04:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_04
+
+    vol_solr_shard_data_05:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_05
+
+    vol_solr_shard_data_06:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_06
+
+    vol_solr_shard_data_07:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_07
+
+    vol_solr_shard_data_08:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_08
+
+    vol_solr_shard_data_09:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_09
+
+    vol_solr_shard_data_10:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_10
+
+    vol_solr_shard_data_11:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_11
+
+    vol_solr_shard_data_12:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_12
+
+    vol_solr_shard_data_13:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_13
+
+    vol_solr_shard_data_14:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_14
+
+    vol_solr_shard_data_15:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_15
+
+    vol_solr_shard_data_16:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_16
+
+    vol_solr_shard_data_17:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_17
+
+    vol_solr_shard_data_18:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_18
+
+    vol_solr_shard_data_19:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_19
+
+    vol_solr_shard_data_20:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_20
+
+    vol_solr_shard_data_21:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_21
+
+    vol_solr_shard_data_22:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_22
+
+    vol_solr_shard_data_23:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_23
+
+    vol_solr_shard_data_24:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_24
+
+    # RabbitMQ data
+    vol_rabbitmq_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_rabbitmq_data
+
+    # OpenDKIM configuration and keys
+    vol_opendkim_config:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_opendkim_config
+
+    # Postfix data
+    vol_postfix_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postfix_data
+
+    # Daily RSS dumps
+    # (shared between cron_generate_daily_rss_dumps and webapp-httpd)
+    vol_daily_rss_dumps:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_daily_rss_dumps
+
+    # Munin's RRD data
+    # (shared between munin_cron and munin_httpd)
+    vol_munin_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_munin_data
+
+    # Munin's generated HTML files
+    # (shared between munin_cron and munin_httpd)
+    vol_munin_html:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_munin_html
+
+    # ELK Elasticsearch log index
+    vol_elk_elasticsearch_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_elk_elasticsearch_data
+
+    # Temporal server workflow archives
+    vol_temporal_server_archives:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_server_archives
+
+    # Temporal PostgreSQL server data
+    vol_temporal_postgresql_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_postgresql_data
+
+    # Temporal Elasticsearch data
+    vol_temporal_elasticsearch_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_elasticsearch_data
+
+    # Temporal Prometheus data
+    vol_temporal_prometheus_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_prometheus_data
+
+    # Temporal Grafana data
+    vol_temporal_grafana_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_grafana_data

@@ -1,0 +1,49 @@
+#!/bin/sh
+
+# Pandora FMS HP-UX Agent, startup script
+# Copyright (c) 2006-2023 Pandora FMS, <info@pandorafms.com>
+# v1.2 Build 091104
+# http://www.pandorafms.com
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin
+PANDORA_PATH=/usr/share/pandora_agent/
+DAEMON=pandora_agent
+PIDFILE=/var/run/pandora_agent.pid
+
+
+if [ ! -f $PANDORA_PATH/$DAEMON ]
+then
+        echo "Pandora Agent not found at $PANDORA_PATH/$DAEMON, please check setup"
+        exit
+fi
+
+case "$1" in
+  start)
+        if [ -f $PIDFILE ]
+        then
+                echo "Pandora Agent is currently running on this machine. Aborting now..."
+                exit
+        fi
+        $PANDORA_PATH/$DAEMON $PANDORA_PATH >> $PANDORA_PATH/pandora.log & MYPID=$!
+        echo $MYPID > $PIDFILE
+        echo "Pandora Agent is now running with PID $MYPID"
+        ;;
+  stop)
+        if [ -f $PIDFILE ]
+        then
+           echo "Stopping Pandora Agent."
+           kill -9 `cat $PIDFILE`
+           rm -f $PIDFILE
+        else
+           echo "Pandora Agent is not running, cannot stop it. Aborting now..."
+        fi
+        ;;
+  force-reload|restart)
+        $0 stop
+        $0 start
+        ;;
+  *)
+        echo "Usage: /etc/init.d/pandora_agent {start|stop|restart|force-reload}"
+        exit 1
+esac
+

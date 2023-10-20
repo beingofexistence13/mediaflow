@@ -1,0 +1,18 @@
+- breadcrumb_title _("Graph")
+- page_title _("Graph"), @ref
+- network_path = project_network_path(@project, @id, ref_type: @ref_type)
+= render "head"
+.gl-mt-5
+  .project-network.gl-border-1.gl-border-solid.gl-border-gray-300
+    .controls.gl-bg-gray-50.gl-p-2.gl-font-base.gl-text-gray-400.gl-border-b-1.gl-border-b-solid.gl-border-b-gray-300
+      = form_tag network_path, method: :get, class: 'form-inline network-form' do |f|
+        = text_field_tag :extended_sha1, @options[:extended_sha1], placeholder: _("Git revision"), class: 'search-input form-control gl-form-input input-mx-250 search-sha gl-mr-2'
+        = render Pajamas::ButtonComponent.new(type: :submit, variant: :confirm, icon: 'search')
+        .form-group{ class: 'gl-ml-5 gl-mb-n3!' }
+          = render Pajamas::CheckboxTagComponent.new(name: :filter_ref, checked: @options[:filter_ref]) do |c|
+            - c.with_label do
+              = _("Begin with the selected commit")
+
+    - if @commit
+      .network-graph.gl-bg-white.gl-overflow-scroll.gl-overflow-x-hidden{ data: { url: @url, commit_url: @commit_url, ref: @ref, commit_id: @commit.id } }
+        = gl_loading_icon(size: 'md', css_class: 'gl-mt-3')

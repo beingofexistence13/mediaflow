@@ -1,0 +1,23 @@
+[Unit]
+Description=GitLab Sidekiq
+ReloadPropagatedFrom=gitlab.target
+PartOf=gitlab.target
+After=network.target
+JoinsNamespaceOf=gitlab-puma.service
+
+[Service]
+Type=notify
+User=git
+WorkingDirectory=/home/git/gitlab
+Environment=RAILS_ENV=production
+Environment=SIDEKIQ_QUEUES=*
+ExecStart=/home/git/gitlab/bin/sidekiq-cluster $SIDEKIQ_QUEUES -P /home/git/gitlab/tmp/pids/sidekiq.pid
+NotifyAccess=all
+PIDFile=/home/git/gitlab/tmp/pids/sidekiq.pid
+Restart=on-failure
+RestartSec=1
+SyslogIdentifier=gitlab-sidekiq
+Slice=gitlab.slice
+
+[Install]
+WantedBy=gitlab.target

@@ -1,0 +1,52 @@
+.gl-display-flex.gl-flex-wrap.gl-justify-content-space-between.gl-align-items-center.gl-pt-3
+  .gl-my-3
+    %h1.page-title.gl-font-size-h-display.gl-m-0
+      = @user.name
+      - if @user.blocked_pending_approval?
+        %span.gl-text-red-500
+          = s_('AdminUsers|(Pending approval)')
+      - elsif @user.banned?
+        %span.gl-text-red-500
+          = s_('AdminUsers|(Banned)')
+      - elsif @user.blocked?
+        %span.gl-text-red-500
+          = s_('AdminUsers|(Blocked)')
+      - if @user.internal?
+        %span.gl-text-red-500
+          = s_('AdminUsers|(Internal)')
+      - if @user.admin
+        %span.gl-text-red-500
+          = s_('AdminUsers|(Admin)')
+      - if @user.deactivated?
+        %span.gl-text-red-500
+          = s_('AdminUsers|(Deactivated)')
+      - if @user.access_locked?
+        %span.gl-text-red-500
+          = s_('AdminUsers|(Locked)')
+      = render_if_exists 'admin/users/auditor_user_badge'
+      = render_if_exists 'admin/users/gma_user_badge'
+
+  .gl-my-3.gl-display-flex.gl-flex-wrap.gl-my-n2.gl-mx-n2
+    - if @user != current_user
+      - if impersonation_enabled?
+        .gl-p-2
+          %span.btn-group{ class: !@can_impersonate ? 'has-tooltip' : nil, title: @impersonation_error_text }
+            = render Pajamas::ButtonComponent.new(disabled: !@can_impersonate, method: :post, href: impersonate_admin_user_path(@user), button_options: { data: { testid: 'impersonate-user-link' } }) do
+              = _('Impersonate')
+      - if can_force_email_confirmation?(@user)
+        .gl-p-2
+          = render Pajamas::ButtonComponent.new(variant: :default, button_options: { class: 'js-confirm-modal-button', data: confirm_user_data(@user) }) do
+            = _('Confirm user')
+    .gl-p-2
+      = render Pajamas::ButtonComponent.new(variant: :confirm, href: new_admin_user_identity_path(@user)) do
+        = _('New identity')
+    .gl-p-2
+      #js-admin-user-actions{ data: admin_user_actions_data_attributes(@user) }
+= gl_tabs_nav do
+  = gl_tab_link_to _("Account"), admin_user_path(@user)
+  = gl_tab_link_to _("Groups and projects"), projects_admin_user_path(@user)
+  = gl_tab_link_to _("SSH keys"), keys_admin_user_path(@user)
+  = gl_tab_link_to _("Identities"), admin_user_identities_path(@user)
+  - if impersonation_enabled?
+    = gl_tab_link_to _("Impersonation Tokens"), admin_user_impersonation_tokens_path(@user), data: { testid: 'impersonation-tokens-tab' }
+.gl-mb-3

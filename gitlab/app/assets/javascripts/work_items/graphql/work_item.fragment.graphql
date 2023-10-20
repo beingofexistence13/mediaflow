@@ -1,0 +1,41 @@
+#import "ee_else_ce/work_items/graphql/work_item_widgets.fragment.graphql"
+#import "~/graphql_shared/fragments/author.fragment.graphql"
+
+fragment WorkItem on WorkItem {
+  id
+  iid
+  title
+  state
+  description
+  confidential
+  createdAt
+  updatedAt
+  closedAt
+  reference(full: true)
+  createNoteEmail
+  project {
+    id
+    fullPath
+    archived
+    name
+  }
+  author {
+    ...Author
+  }
+  workItemType {
+    id
+    name
+    iconName
+  }
+  userPermissions {
+    deleteWorkItem
+    updateWorkItem
+    adminParentLink
+    setWorkItemMetadata
+    createNote
+    adminWorkItemLink
+  }
+  widgets {
+    ...WorkItemWidgets
+  }
+}

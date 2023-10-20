@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "allOf": [
+    { "$ref": "group_link.json" },
+    {
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "object",
+          "required": ["id", "full_name"],
+          "properties": {
+            "id": { "type": "integer" },
+            "full_name": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}
